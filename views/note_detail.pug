@@ -1,0 +1,29 @@
+extends layout
+
+block content
+
+    h1= title
+
+    p Select a note from the menu
+
+        form(method='POST' action='/notes/')
+            div.form-group
+                select#id.form-control(type='select' placeholder='Select note list' name='id' required='true' )
+                    for name in names
+                        option(value=name._id) #{name.name}
+            button.btn.btn-primary(type='submit') Submit
+
+    br
+
+    h4= note.name
+
+    p= note.body
+
+    br
+
+    hr
+
+    p
+        a(href=note.url + '/delete') Delete this note
+    p
+        a(href=note.url + '/update') Update this note

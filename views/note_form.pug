@@ -1,0 +1,21 @@
+extends layout
+
+block content
+
+    h1 #{title}
+
+    form(method='POST' action='')
+        div.form-group
+            label(for='name') Name:
+            input#name.form-control(type='text', placeholder='name for new note', name='name', value=(undefined===note ? '' : note.name))
+        div.form-group
+            label(for'body') Notes:
+            input#body.form-control(type='textarea', placeholder='notes', name='body', value=(undefined===note ? '' : note.body))
+        button.btn.btn-primary(type='submit') Submit
+
+    hr
+
+    if (errors)
+        ul
+            for error in errors
+                li!= error.msg

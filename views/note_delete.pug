@@ -1,0 +1,28 @@
+extends layout
+
+block content
+
+    h1= title
+
+    br
+
+    p #[strong Do you really want to delete this Note?]
+
+    div(style="margin-left:20px")
+
+        br
+
+        h4= note.name
+
+        p= note.body
+
+        br
+
+    form(method='POST' action='')
+        div.form-group
+            input#id.form-control(type='hidden', name='id', required='true', value=note._id)
+
+        button.btn.btn-primary(type='submit') Delete
+
+
+
