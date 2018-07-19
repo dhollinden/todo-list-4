@@ -9,7 +9,7 @@ exports.index = function (req, res, next) {
     Note.find().select('name').sort({name: 1}).exec(function (err, names) {
         if (err) { return next(err); }
         // Success, so render
-        res.render('index', { title: 'Note List Home', names: names} );
+        res.render('index', { title: 'Note List Home', names: names, action: req.query.action } );
     });
 
 };
@@ -196,7 +196,7 @@ exports.note_delete_post = function (req, res, next) {
     Note.findByIdAndRemove(req.body.id, function (err) {
         if (err) { return next(err); }
         // success, so redirect to home page
-        res.redirect('/notes');
+        res.redirect('/notes?action=deleted');
     });
 
 };

@@ -13,4 +13,7 @@ block content
                     option(value=name._id) #{name.name}
         button.btn.btn-primary(type='submit') Submit
 
+    br
 
+    if action === 'deleted'
+        p The note was deleted
