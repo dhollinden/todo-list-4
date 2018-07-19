@@ -6,7 +6,7 @@ const { sanitizeBody } = require('express-validator/filter');
 // display notes home page
 exports.index = function (req, res, next) {
 
-    Note.find({}, 'name', function (err, names) {
+    Note.find().select('name').sort({name: 1}).exec(function (err, names) {
         if (err) { return next(err); }
         // Success, so render
         res.render('index', { title: 'Note List Home', names: names} );
@@ -19,7 +19,7 @@ exports.note_detail_get = function(req, res, next) {
 
     async.parallel({
         names: function (callback) {
-            Note.find({}, 'name', callback);
+            Note.find().select('name').sort({name: 1}).exec(callback);
         },
         note: function (callback) {
             Note.findById(req.params.id, callback);
@@ -43,7 +43,7 @@ exports.note_detail_post = function (req, res, next) {
 
     async.parallel({
         names: function (callback) {
-            Note.find({}, 'name', callback);
+            Note.find().select('name').sort({name: 1}).exec(callback);
         },
         note: function (callback) {
             Note.findById(req.body.id, callback);

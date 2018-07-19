@@ -10,12 +10,17 @@ block content
             div.form-group
                 select#id.form-control(type='select' placeholder='Select note list' name='id' required='true' )
                     for name in names
-                        option(value=name._id) #{name.name}
+                        if name._id==note._id.toString()
+                            option(value=name._id selected) #{name.name}
+                        else
+                            option(value=name._id) #{name.name}
             button.btn.btn-primary(type='submit') Submit
 
     br
 
     h4= note.name
+
+
 
     p= note.body
 
