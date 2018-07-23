@@ -3,28 +3,28 @@
 console.log('This script populates some test notes to your database. Specified database as argument - e.g.: populatedb mongodb://your_username:your_password@your_dabase_url');
 
 // Get arguments passed on command line
-var userArgs = process.argv.slice(2);
+const userArgs = process.argv.slice(2);
 if (!userArgs[0].startsWith('mongodb://')) {
     console.log('ERROR: You need to specify a valid mongodb URL as the first argument');
     return
 }
 
-var async = require('async')
-var Note = require('./models/note')
+const async = require('async')
+const Note = require('./models/note')
 
-var mongoose = require('mongoose');
-var mongoDB = userArgs[0];
+const mongoose = require('mongoose');
+const mongoDB = userArgs[0];
 mongoose.connect(mongoDB);
 mongoose.Promise = global.Promise;
-var db = mongoose.connection;
+const db = mongoose.connection;
 mongoose.connection.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
-var notes= []
+const notes = []
 
 function noteCreate(name, body, cb) {
     notedetail = {name:name , body: body }
 
-    var note = new Note(notedetail);
+    const note = new Note(notedetail);
 
     note.save(function (err) {
         if (err) {

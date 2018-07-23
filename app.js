@@ -1,24 +1,24 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var notesRouter = require('./routes/notes');
-var compression = require('compression');
-var helmet = require('helmet');
+const indexRouter = require('./routes/index');
+const usersRouter = require('./routes/users');
+const notesRouter = require('./routes/notes');
+const compression = require('compression');
+const helmet = require('helmet');
 
-var app = express();
+const app = express();
 app.use(helmet());
 
 //Set up mongoose connection
-var mongoose = require('mongoose');
-var mongoDB = process.env.MONGODB_URI || 'mongodb://todo-list-4-admin:todo-list-4-password@ds235461.mlab.com:35461/todo-list-4';
+const mongoose = require('mongoose');
+const mongoDB = process.env.MONGODB_URI || 'mongodb://todo-list-4-admin:todo-list-4-password@ds235461.mlab.com:35461/todo-list-4';
 mongoose.connect(mongoDB);
 mongoose.Promise = global.Promise;
-var db = mongoose.connection;
+const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 // view engine setup
@@ -39,7 +39,8 @@ app.use('/notes', notesRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  next(createError(404));
+    console.log("err = ", err);
+    next(createError(404));
 });
 
 // error handler

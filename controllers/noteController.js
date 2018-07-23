@@ -1,5 +1,5 @@
-var Note = require('../models/note');
-var async = require('async');
+const Note = require('../models/note');
+const async = require('async');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 
@@ -26,8 +26,8 @@ exports.note_detail_get = function(req, res, next) {
         }
     }, function (err, results) {
         if (err) { return next(err); }
-        if (results.note==null) { // No results
-            var err = new Error('Book not found');
+        if (results.note===null) { // No results
+            const err = new Error('Note not found');
             err.status = 404;
             return next(err);
         }
@@ -50,8 +50,8 @@ exports.note_detail_post = function (req, res, next) {
         }
     }, function (err, results) {
         if (err) { return next(err); }
-        if (results.note==null) { // No results
-            var err = new Error('Book not found');
+        if (results.note===null) { // No results
+            const err = new Error('Note not found');
             err.status = 404;
             return next(err);
         }
@@ -84,7 +84,7 @@ exports.note_create_post = [
         const errors = validationResult(req);
 
         // create a note object with sanitized data
-        var note = new Note(
+        const note = new Note(
             {
                 name: req.body.name,
                 body: req.body.body
@@ -127,7 +127,7 @@ exports.note_update_get = function (req, res, next) {
     Note.findById(req.params.id).exec(function(err, note) {
         if (err) { return next(err); }
         if (note===null) { // No results.
-            var err = new Error('Note not found');
+            const err = new Error('Note not found');
             err.status = 404;
             return next(err);
         }
@@ -154,7 +154,7 @@ exports.note_update_post = [
         const errors = validationResult(req);
 
         // create a note object with sanitized data (and the id of the existing note being updated!)
-        var note = new Note(
+        const note = new Note(
             {
                 name: req.body.name,
                 body: req.body.body,

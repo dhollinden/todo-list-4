@@ -1,13 +1,13 @@
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
-var Schema = mongoose.Schema;
+const Schema = mongoose.Schema;
 
-var NoteSchema = new Schema(
+const NoteSchema = new Schema(
     {
         name: {type: String, required: true, max: 100},
-        body: {type: String, max:1000}
+        body: {type: String, max: 1000}
     }
-);
+)
 
 // virtual for note's URL
 NoteSchema
