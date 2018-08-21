@@ -4,14 +4,27 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 
+// for authentication
+const uuid = require('uuid/v4')
+const session = require('express-session')
+const FileStore = require('session-file-store')(session);
+const bodyParser = require('body-parser');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const axios = require('axios');
+const bcrypt = require('bcrypt-nodejs');
+
+// bring in the routers
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const notesRouter = require('./routes/notes');
+const loginRouter = require('./routes/login');
+
 const compression = require('compression');
 const helmet = require('helmet');
-
 const app = express();
 app.use(helmet());
+
 
 //Set up mongoose connection
 const mongoose = require('mongoose');
@@ -33,9 +46,26 @@ app.use(cookieParser());
 app.use(compression()); //Compress all routes
 app.use(express.static(path.join(__dirname, 'public')));
 
+// from authorization tutorial
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
+app.use(session({
+    genid: (req) => {
+        return uuid() // use UUIDs for session IDs
+    },
+    store: new FileStore(),
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true
+}))
+app.use(passport.initialize());
+app.use(passport.session());
+
+// use the routers
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/notes', notesRouter);
+app.use('/login', loginRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
