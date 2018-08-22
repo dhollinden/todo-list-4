@@ -18,8 +18,8 @@ const bcrypt = require('bcrypt-nodejs');
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const notesRouter = require('./routes/notes');
-const loginRouter = require('./routes/login');
 
+// compression and protection
 const compression = require('compression');
 const helmet = require('helmet');
 const app = express();
@@ -65,7 +65,6 @@ app.use(passport.session());
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/notes', notesRouter);
-app.use('/login', loginRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

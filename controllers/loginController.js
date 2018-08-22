@@ -6,6 +6,9 @@ const { sanitizeBody } = require('express-validator/filter');
 
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+const axios = require('axios');
+const bcrypt = require('bcrypt-nodejs');
+
 
 // configure passport.js to use the local strategy
 passport.use(new LocalStrategy(
@@ -15,10 +18,11 @@ passport.use(new LocalStrategy(
             .then(res => {
                 const user = res.data[0]
                 if (!user) {
-                    return done(null, false, { message: 'Invalid credentials.\n' });
+                    return done(null, false, { message: 'Invalid email address.\n' });
                 }
                 if (!bcrypt.compareSync(password, user.password)) {
-                    return done(null, false, { message: 'Invalid credentials.\n' });
+                    console.log("in bcrypt.compareSync: ", password, user.password);
+                    return done(null, false, { message: 'Invalid password.\n' });
                 }
                 return done(null, user);
             })
@@ -41,7 +45,7 @@ passport.deserializeUser((id, done) => {
 // display login page on GET
 exports.login_get= function (req, res, next) {
 
-    res.send(`You got the login page!\n`)
+    res.render('login', {title: 'Login'});
 
 };
 
@@ -49,12 +53,13 @@ exports.login_get= function (req, res, next) {
 exports.login_post= function (req, res, next) {
 
     passport.authenticate('local', (err, user, info) => {
-        if(info) {return res.send(info.message)}
+        console.log(err, user, info);
+        if(info) {return res.render('login', {title: 'Login', message: info.message})}
         if (err) { return next(err); }
-        if (!user) { return res.redirect('/login'); }
+        if (!user) { return res.redirect('/login'); }  // what is this for?
         req.login(user, (err) => {
             if (err) { return next(err); }
-            return res.redirect('/authrequired');
+            return res.render('login', {title: 'Login', message: 'Login was successful'});
         })
     })(req, res, next);
 
