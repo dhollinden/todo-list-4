@@ -6,14 +6,19 @@ block content
 
     form(method='POST' action='')
         div.form-group
-            label(for='name') Email address:
+            label(for='name') Email address
             input#name.form-control(type='text', placeholder='email address', name='email', value='')
         div.form-group
-            label(for'body') Password:
+            label(for'body') Password (8 characters minimum)
             input#body.form-control(type='text', placeholder='password', name='password', value='')
         button.btn.btn-primary(type='submit') Submit
 
     hr
 
-    if (message)
+    if message
         p= message
+
+    if errors
+        ul
+            for error in errors
+                li!= error.msg

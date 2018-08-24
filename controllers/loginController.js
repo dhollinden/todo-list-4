@@ -1,13 +1,9 @@
-const Note = require('../models/note');
-const async = require('async');
-const { body,validationResult } = require('express-validator/check');
-const { sanitizeBody } = require('express-validator/filter');
-
-
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const axios = require('axios');
 const bcrypt = require('bcrypt-nodejs');
+const { body,validationResult } = require('express-validator/check');
+const { sanitizeBody } = require('express-validator/filter');
 
 
 // ------------- Passport -------------
@@ -20,11 +16,10 @@ passport.use(new LocalStrategy(
             .then(res => {
                 const user = res.data[0]
                 if (!user) {
-                    return done(null, false, { message: 'Invalid email address.\n' });
+                    return done(null, false, { message: 'Invalid email address or password.\n' });
                 }
                 if (!bcrypt.compareSync(password, user.password)) {
-                    console.log("in bcrypt.compareSync: ", password, user.password);
-                    return done(null, false, { message: 'Invalid password.\n' });
+                    return done(null, false, { message: 'Invalid email address or password.\n' });
                 }
                 return done(null, user);
             })
@@ -49,7 +44,7 @@ passport.deserializeUser((id, done) => {
 // login page GET
 exports.login_get = function (req, res, next) {
 
-    res.render('login', {title: 'Log In'});
+    res.render('user_form', {title: 'Log In'});
 
 };
 
@@ -58,13 +53,12 @@ exports.login_get = function (req, res, next) {
 exports.login_post = function (req, res, next) {
 
     passport.authenticate('local', (err, user, info) => {
-        console.log(err, user, info);
-        if(info) {return res.render('login', {title: 'Log In', message: info.message})}
+        if(info) {return res.render('user_form', {title: 'Log In', message: info.message})}
         if (err) { return next(err); }
         if (!user) { return res.redirect('/login'); }  // what is this for?
         req.login(user, (err) => {
             if (err) { return next(err); }
-            return res.render('login', {title: 'Log In', message: 'Login was successful'});
+            return res.render('user_form', {title: 'Log In', message: 'Login was successful'});
         })
     })(req, res, next);
 
@@ -74,46 +68,63 @@ exports.login_post = function (req, res, next) {
 // signup page GET
 exports.signup_get = function (req, res, next) {
 
-    res.render('login', {title: 'Sign Up'});
+    res.render('user_form', {title: 'Sign Up'});
 
 };
 
 
 // signup page POST
-exports.signup_post = function (req, res, next) {
+exports.signup_post = [
 
-    const password = req.body.password;
-    axios.get(`http://localhost:5000/users?email=${req.body.email}`)
-        .then(res_axios => {
-            const user = res_axios.data[0];
-            if (user) {
-                // email exists in db so return to signup page
-                return res.render('login', {title: 'Sign Up Error', message: `The email address ${req.body.email} has already been registered`})
-            } else {
+    // Validate email and password
+    body('email', 'A valid email address is required').isEmail(),
+    body('password', 'Your password must be at least eight characters long').isLength({ min: 8 }).trim(),
 
-                // hash the password with bcrypt and create random id
-                const saltRounds = 10;
-                const hash = bcrypt.hashSync(password, bcrypt.genSaltSync(saltRounds));
-                const id = Math.random().toString(36).substring(2, 9);
+    // Sanitize email, but not password
+    sanitizeBody('email').trim().escape(),
 
-                // store data in the db.json using axios.post()
-                axios.post('http://localhost:5000/users', {
+    // Process request
+    (req, res, next) => {
 
-                    id: id,
-                    email: req.body.email,
-                    password: hash
-                })
-                    .then(function (response) {
-                        return res.render('login', {title: 'Sign Up Success', message: `Success! You have been registered with the email address ${req.body.email}`})
-                    })
-                    .catch(error => next(error));
+        // Extract the validation errors
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            // There are errors. Render the form again with sanitized values/error messages.
+            res.render('user_form', { title: 'Sign Up Error', errors: errors.array()});
+        }
+        else {
+
+            const password = req.body.password;
+            axios.get(`http://localhost:5000/users?email=${req.body.email}`)
+                .then(res_axios => {
+                    const user = res_axios.data[0];
+                    if (user) {
+                        // email exists in db so return to signup page
+                        return res.render('user_form', {title: 'Sign Up Error', message: `The email address ${req.body.email} has already been registered`})
+                    } else {
+
+                        // hash the password with bcrypt and create random id
+                        const saltRounds = 10;
+                        const hash = bcrypt.hashSync(password, bcrypt.genSaltSync(saltRounds));
+                        const id = Math.random().toString(36).substring(2, 9);
+
+                        // store data in the db.json using axios.post()
+                        axios.post('http://localhost:5000/users', {
+                            id: id,
+                            email: req.body.email,
+                            password: hash
+                        })
+                        .then(function (response) {
+                            return res.render('user_form', {title: 'Sign Up Success', message: `Success! You have been registered with the email address ${req.body.email}`})
+                        })
+                        .catch(error => next(error));
             }
         })
         .catch(error => next(error));
+        }
 
+    // then call req.login() with the user object you’ve created.
 
-
-
-// then call req.login() with the user object you’ve created.
-
-};
+    }
+];
