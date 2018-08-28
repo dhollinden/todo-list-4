@@ -3,20 +3,25 @@ const async = require('async');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 
-// display notes home page
+
+// notes home page GET
 exports.index = function (req, res, next) {
 
+    // retrieve note names for menu
     Note.find().select('name').sort({name: 1}).exec(function (err, names) {
-        if (err) { return next(err); }
-        // Success, so render
-        res.render('index', { title: 'Note List Home', names: names, action: req.query.action } );
+        if (err) return next(err);
+        // success, so render page
+        const message = req.query.message;
+        res.render('notes', {title: 'My Notes', names: names, message: message});
     });
 
 };
 
-// display an individual note on GET
+
+// individual note on GET (from redirects after updating a note)
 exports.note_detail_get = function(req, res, next) {
 
+    // retrieve note names for menu and details for individual note
     async.parallel({
         names: function (callback) {
             Note.find().select('name').sort({name: 1}).exec(callback);
@@ -25,22 +30,24 @@ exports.note_detail_get = function(req, res, next) {
             Note.findById(req.params.id, callback);
         }
     }, function (err, results) {
-        if (err) { return next(err); }
-        if (results.note===null) { // No results
+        if (err) return next(err);
+        if (results.note === null) { // No results
             const err = new Error('Note not found');
             err.status = 404;
             return next(err);
         }
-        // Success, so render
-        res.render('note_detail', { title: 'Note Detail', note: results.note, names: results.names } );
+        // success, so render page
+        res.render('note_detail', {title: 'My Notes: ' + results.note.name, note: results.note, names: results.names});
 
     });
 
 };
 
-// display an individual note on POST
+
+// individual note on POST (from notes menu)
 exports.note_detail_post = function (req, res, next) {
 
+    // retrieve note names for menu and details for individual note
     async.parallel({
         names: function (callback) {
             Note.find().select('name').sort({name: 1}).exec(callback);
@@ -49,31 +56,34 @@ exports.note_detail_post = function (req, res, next) {
             Note.findById(req.body.id, callback);
         }
     }, function (err, results) {
-        if (err) { return next(err); }
+        if (err) return next(err);
         if (results.note===null) { // No results
             const err = new Error('Note not found');
             err.status = 404;
             return next(err);
         }
-        // Success, so render
-        res.render('note_detail', { title: 'Note Detail', note: results.note, names: results.names } );
+        // success, so render page
+        res.render('note_detail', {title: 'My Notes: ' + results.note.name, note: results.note, names: results.names});
 
     });
 
 };
 
-// display note create page on GET
+
+// note create on GET
 exports.note_create_get = function(req, res, next) {
     res.render('note_form', { title: 'Create Note' });
 };
 
-// display note create form on POST
+
+// note create on POST
 exports.note_create_post = [
 
-    // validate that note name field is not empty (note body may be empty) --> what about > 100 characters?
-    body('name', 'Name is required').isLength({min: 1}).trim(),
+    // validate that note name field is not empty (note body may be empty)
+    // --> what about > 100 characters?
+    body('name', 'Please enter a name for the note.').isLength({min: 1}).trim(),
 
-    // sanitize note name and body fields
+    // sanitize note name and body
     sanitizeBody('name').trim().escape(),
     sanitizeBody('body').trim().escape(),
 
@@ -93,54 +103,49 @@ exports.note_create_post = [
 
         if (!errors.isEmpty()) {
             // there are validation errors, so render form again with sanitized values and error messages
-            res.render('note_form', { title: 'Create Note', note: note, errors: errors.array() } );
+            res.render('note_form', {title: 'Create Note: Error', note: note, errors: errors.array()});
         }
         else {
-            // form data is valid
-            // check if note with same name already exists
+            // form data is valid, check if note with same name already exists
             Note.findOne({'name': req.body.name}).exec(function(err, found_note) {
-                if (err) { return next(err); }
+                if (err) return next(err);
                 if (found_note) {
-                    // note with same name exists, so redirect to it's detail page
-                    res.redirect(found_note.url);
+                    // note with same name exists, so re-render form with message
+                    res.render('note_form', {title: 'Create Note: Error', note: note, message: 'name_exists'});
                 } else {
                     note.save(function(err) {
                         if (err) { return next(err); }
                         // note was saved, so redirect to it's detail page
-                        Note.find({}, 'name', function (err, names) {
-                            if (err) { return next(err); }
-                            // Success, so render
-                            res.render('note_detail', { title: 'Note Detail', note: note, names: names} );
-                        });
+                        res.redirect(note.url);
                     })
                 }
             })
-
         }
-
     }
+
 ];
 
-// display note update on GET
+
+// note update on GET
 exports.note_update_get = function (req, res, next) {
 
     Note.findById(req.params.id).exec(function(err, note) {
-        if (err) { return next(err); }
-        if (note===null) { // No results.
+        if (err) return next(err);
+        if (note === null) { // no results
             const err = new Error('Note not found');
             err.status = 404;
             return next(err);
         }
-        // successful, so render
-        res.render('note_form', { title: 'Update Note', note: note });
+        // success, so render page
+        res.render('note_form', { title: 'Update Note: ' + note.name, note: note });
     })
 
 }
 
-// display note update on POST
+// note update on POST
 exports.note_update_post = [
 
-    // validate that note name field is not empty (note body may be empty) --> what about > 100 characters?
+    // validate that note name field is not empty (note body may be empty)
     body('name', 'Name is required').isLength({min: 1}).trim(),
 
     // sanitize note name and body fields
@@ -153,7 +158,7 @@ exports.note_update_post = [
         // extract any validation errors
         const errors = validationResult(req);
 
-        // create a note object with sanitized data (and the id of the existing note being updated!)
+        // create a note object with sanitized data ** and the id of the existing note being updated **
         const note = new Note(
             {
                 name: req.body.name,
@@ -167,36 +172,48 @@ exports.note_update_post = [
             res.render('note_form', { title: 'Create Note', note: note, errors: errors.array() } );
         }
         else {
-            // form data is valid
-            Note.findByIdAndUpdate(req.params.id, note, {}, function (err,the_note) {
-                if (err) { return next(err); }
-                // Successful - redirect to the updated note's detail page
-                res.redirect(the_note.url);
-            });
+            // form data is valid, check if note with same name already exists
+            Note.findOne({'name': req.body.name}).exec(function(err, found_note) {
+                if (err) return next(err);
+                const found_id = found_note ? String(found_note._id) : null;
+                if (found_note && note._id != found_id) {
+                    // note with same name exists, so re-render form with message
+                    res.render('note_form', {title: 'Update Note: Error', note: note, message: 'name_exists'});
+                } else {
+                    Note.findByIdAndUpdate(req.params.id, note, {}, function (err,updated_note) {
+                        if (err) { return next(err); }
+                        // success - redirect to detail page for updated note
+                        res.redirect(updated_note.url);
+                    });
+                }
+            })
         }
     }
+
 ];
 
-// display note delete on GET
+
+// note delete on GET
 exports.note_delete_get = function (req, res, next) {
 
     Note.findById(req.params.id).exec(function(err, note) {
-        if (err) { return next(err); }
-        if (note===null) { res.redirect('/notes'); } // note does not exist, so redirect to home page
+        if (err) return next(err);
+        if (note === null) { res.redirect('/notes'); } // note does not exist, so redirect to home page
         // successful, so render
-        res.render('note_delete', { title: 'Delete Note', note: note });
+        res.render('note_delete', { title: 'Delete Note: ' + note.name, note: note });
     })
 
 }
 
-// display note delete on POST
+
+// note delete on POST
 exports.note_delete_post = function (req, res, next) {
 
     // assume note id is valid
     Note.findByIdAndRemove(req.body.id, function (err) {
-        if (err) { return next(err); }
+        if (err) return next(err);
         // success, so redirect to home page
-        res.redirect('/notes?action=deleted');
+        res.redirect('/notes?message=note_deleted');
     });
 
 };

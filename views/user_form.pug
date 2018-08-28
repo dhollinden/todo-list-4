@@ -4,6 +4,23 @@ block content
 
     h1 #{title}
 
+    br
+
+    ul
+        if message === 'signup_success'
+            li Your signup was successful. Please log in.
+        else if message === "signup_email_registered"
+            li That email address has already been signed up. Please try another one.
+        else if message === 'login_invalid_creds'
+            li The email address or password is incorrect.
+        else if message === 'login_success'
+            li Your login was successful.
+        else if errors
+            for error in errors
+                li!= error.msg
+
+    br
+
     form(method='POST' action='')
         div.form-group
             label(for='name') Email address
@@ -13,12 +30,3 @@ block content
             input#body.form-control(type='text', placeholder='password', name='password', value='')
         button.btn.btn-primary(type='submit') Submit
 
-    hr
-
-    if message
-        p= message
-
-    if errors
-        ul
-            for error in errors
-                li!= error.msg

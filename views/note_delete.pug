@@ -5,18 +5,16 @@ block content
     h1= title
 
     br
+    br
+    br
 
-    p #[strong Do you really want to delete this Note?]
+    h4= note.name
 
-    div(style="margin-left:20px")
+    p= note.body
 
-        br
+    br
 
-        h4= note.name
-
-        p= note.body
-
-        br
+    div #[strong Do you really want to delete this Note?]
 
     form(method='POST' action='')
         div.form-group

@@ -1,0 +1,30 @@
+extends layout
+
+block content
+
+    h1= title
+
+    br
+
+    if message === 'login_success'
+        div You have successfully logged in.
+    else if message === "note_deleted"
+        div Your note was deleted.
+    else
+        br
+
+    br
+
+    p Select a note from the menu
+
+    form(method='POST' action='/notes/')
+        div.form-group
+            select#id.form-control(type='select' placeholder='Select note list' name='id' required='true' )
+                for name in names
+                    option(value=name._id) #{name.name}
+        button.btn.btn-primary(type='submit') Submit
+
+    br
+
+    if action === 'deleted'
+        p The note was deleted

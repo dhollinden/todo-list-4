@@ -7,9 +7,7 @@ const login_controller = require('../controllers/loginController');
 // ROUTES
 
 /* GET home page. */
-router.get('/', function(req, res) {
-    res.redirect('/notes');
-});
+router.get('/', login_controller.index);
 
 // GET request for login page
 router.get('/login', login_controller.login_get);
