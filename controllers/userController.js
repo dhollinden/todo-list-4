@@ -41,55 +41,13 @@ passport.deserializeUser((id, done) => {
 
 // ------------- callbacks -------------
 
-// login page GET
-exports.login_get = function (req, res, next) {
-
-    const message = req.query.message;
-    res.render('user_form', {title: 'Log In', message: message});
-
-};
-
-
-// login page POST
-exports.login_post = [
-
-    // Validate email. Require password, but do not validate min length of 8
-    body('email', 'You must enter a valid email address.').isEmail(),
-    body('password', 'You must enter a password.').isLength({ min: 1 }).trim(),
-
-    // Sanitize email, but not password
-    sanitizeBody('email').trim().escape(),
-
-    // Process request
-    (req, res, next) => {
-
-        // Extract the validation errors
-        const errors = validationResult(req);
-
-        if (!errors.isEmpty()) {
-            // There are errors. Render the form again with error messages and sanitized values.
-            res.render('user_form', {title: 'Log In Error', errors: errors.array()});
-        }
-        else {
-
-            passport.authenticate('local', (err, user, info) => {
-            if (info) return res.render('user_form', {title: 'Log In', message: info.message});
-            if (err) return next(err);
-            if (!user) return res.redirect('/login');  // what is this for?
-            req.login(user, (err) => {
-                if (err) return next(err);
-                res.redirect('/notes?message=login_success');
-            })
-            })(req, res, next);
-        }
-    }
-];
-
-
 // home page GET
 exports.index = function (req, res, next) {
-    res.render('index');
+
+    const message = req.query.message;
+    res.render('index', {message: message});
 }
+
 
 // signup page GET
 exports.signup_get = function (req, res, next) {
@@ -151,3 +109,59 @@ exports.signup_post = [
         }
     }
 ];
+
+
+// login page GET
+exports.login_get = function (req, res, next) {
+
+    const message = req.query.message;
+    res.render('user_form', {title: 'Log In', message: message});
+
+};
+
+
+// login page POST
+exports.login_post = [
+
+    // Validate email. Require password, but do not validate min length of 8
+    body('email', 'You must enter a valid email address.').isEmail(),
+    body('password', 'You must enter a password.').isLength({ min: 1 }).trim(),
+
+    // Sanitize email, but not password
+    sanitizeBody('email').trim().escape(),
+
+    // Process request
+    (req, res, next) => {
+
+        // Extract the validation errors
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            // There are errors. Render the form again with error messages and sanitized values.
+            res.render('user_form', {title: 'Log In Error', errors: errors.array()});
+        }
+        else {
+
+            // authenticate using Passport local strategy
+            passport.authenticate('local', (err, user, info) => {
+
+                // check for messages, and render page again
+                if (info) return res.render('user_form', {title: 'Log In', message: info.message});
+
+                // check for error during authentication
+                if (err) return next(err);
+
+                // check for no user (for any reason)
+                if (!user) return res.redirect('/login');
+
+                // success, so log in user
+                req.login(user, (err) => {
+                    if (err) return next(err);
+                    res.redirect('/notes?message=login_success');
+                })
+            })(req, res, next);
+        }
+    }
+];
+
+

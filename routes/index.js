@@ -18,7 +18,7 @@ router.post('/login', user_controller.login_post)
 // GET request for signup page
 router.get('/signup', user_controller.signup_get);
 
-// POST request for login page
+// POST request for signup page
 router.post('/signup', user_controller.signup_post)
 
 module.exports = router;

@@ -17,6 +17,7 @@ const bcrypt = require('bcrypt-nodejs');
 // bring in the routers
 const indexRouter = require('./routes/index');
 const notesRouter = require('./routes/notes');
+// const authController = require('./routes/authorization');
 
 // compression and protection
 const compression = require('compression');
@@ -62,7 +63,12 @@ app.use(passport.session());
 
 // use the routers
 app.use('/', indexRouter);
-app.use('/notes', notesRouter);
+app.use('/notes', function (req, res, next) {
+    if(!req.isAuthenticated())
+        res.redirect('/?message=not_logged_in');
+    else
+        next()
+}, notesRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

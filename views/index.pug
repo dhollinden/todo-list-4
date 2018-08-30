@@ -5,7 +5,12 @@ block content
     h1 Notes Home
 
     br
-    br
+
+    if message === 'not_logged_in'
+        div You must log in before you can work with notes.
+    else
+        br
+
     br
 
     h4 Sign Up
