@@ -17,7 +17,6 @@ const bcrypt = require('bcrypt-nodejs');
 // bring in the routers
 const indexRouter = require('./routes/index');
 const notesRouter = require('./routes/notes');
-// const authController = require('./routes/authorization');
 
 // compression and protection
 const compression = require('compression');
