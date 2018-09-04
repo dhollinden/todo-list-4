@@ -1,4 +1,4 @@
-const Note = require('../models/note');
+const Note = require('../models/note_model');
 const async = require('async');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
@@ -94,10 +94,12 @@ exports.note_create_post = [
         const errors = validationResult(req);
 
         // create a note object with sanitized data
+        console.log(`req.user._id = ${req.user.id}`);
         const note = new Note(
             {
                 name: req.body.name,
-                body: req.body.body
+                body: req.body.body,
+                user_id: req.user.id
             }
         );
 
@@ -114,6 +116,7 @@ exports.note_create_post = [
                     res.render('note_form', {title: 'Create Note: Error', note: note, message: 'name_exists'});
                 } else {
                     note.save(function(err) {
+                        console.log(`note.user_id = ${note.user_id}`);
                         if (err) { return next(err); }
                         // note was saved, so redirect to it's detail page
                         res.redirect(note.url);

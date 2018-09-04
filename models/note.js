@@ -9,6 +9,7 @@ const NoteSchema = new Schema(
     }
 )
 
+
 // virtual for note's URL
 NoteSchema
 .virtual('url')

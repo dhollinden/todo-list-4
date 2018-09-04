@@ -10,7 +10,8 @@ if (!userArgs[0].startsWith('mongodb://')) {
 }
 
 const async = require('async')
-const Note = require('./models/note')
+const Note = require('./models/note_model')
+const User = require('./models/user_model')
 
 const mongoose = require('mongoose');
 const mongoDB = userArgs[0];
@@ -20,9 +21,10 @@ const db = mongoose.connection;
 mongoose.connection.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 const notes = []
+const users = []
 
-function noteCreate(name, body, cb) {
-    notedetail = {name:name , body: body }
+function noteCreate(name, body, user_id, cb) {
+    notedetail = {name:name, body: body, user_id: user_id}
 
     const note = new Note(notedetail);
 
@@ -37,16 +39,60 @@ function noteCreate(name, body, cb) {
     }  );
 }
 
+function userCreate(email, password, admin, cb) {
+    userdetail = {email:email, password:password, admin:admin}
+
+    const user = new User(userdetail);
+
+    user.save(function (err) {
+        if (err) {
+            cb(err, null)
+            return
+        }
+        console.log('New User: ' + user);
+        users.push(user)
+        cb(null, user)
+    }  );
+}
+
 function createNotes(cb) {
     async.parallel([
             function(callback) {
-                noteCreate('Shopping', 'lettuse, arugula, tomatoes', callback);
+                noteCreate('Shopping List', 'lettuce, arugula, tomatoes', users[0], callback);
             },
             function(callback) {
-                noteCreate('Errands', 'hardware store, dry cleaners, dog food', callback);
+                noteCreate('Errands', 'hardware store, dry cleaners, dog food', users[0], callback);
             },
             function(callback) {
-                noteCreate('Yard Work', 'hose faucet leak, get ladder from Carol, order mulch', callback);
+                noteCreate('Yard Work', 'hose faucet leak, get ladder from Carol, order mulch', users[0], callback);
+            },
+            function(callback) {
+                noteCreate('Test User veggie list', 'radishes, kholrabi, arugula', users[1], callback);
+            },
+            function(callback) {
+                noteCreate('Test User dairy list', 'milk, ice cream, yogurt, butter', users[1], callback);
+            },
+            function(callback) {
+                noteCreate('User2 tool list', 'hammer, anvil, chisel', users[2], callback);
+            },
+            function(callback) {
+                noteCreate('User2 nap locations', 'bed, patio recliner, living room floor', users[2], callback);
+            },
+        ],
+        // optional callback
+        cb);
+}
+
+function createUsers(cb) {
+    async.parallel([
+            function(callback) {
+                userCreate('dave.hollinden@ithaka.org', '$2a$10$8W1N9CjbkqJuTh1XHZyyYuCabP18iWgiN0F.uPtfSleGyyTubvIfi', true, callback);
+            },
+            function(callback) {
+                userCreate('test@test.com', '$2a$12$nv9iV5/UNuV4Mdj1Jf8zfuUraqboSRtSQqCmtOc4F7rdwmOb9IzNu', false, callback);
+            },
+            function(callback) {
+                userCreate('user2@example.com', '$2a$12$VHZ9aJ5A87YeFop4xVW.aOMm95ClU.EviyT9o0i8HYLdG6w6ctMfW', false, callback);
             },
         ],
         // optional callback
@@ -54,7 +100,8 @@ function createNotes(cb) {
 }
 
 async.series([
-        createNotes,
+        createUsers,
+        createNotes
     ],
 // Optional callback
     function(err, results) {
