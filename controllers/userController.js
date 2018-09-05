@@ -1,6 +1,6 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-const axios = require('axios');
+const User = require('../models/user_model');
 const bcrypt = require('bcrypt-nodejs');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
@@ -12,18 +12,20 @@ const { sanitizeBody } = require('express-validator/filter');
 passport.use(new LocalStrategy(
     { usernameField: 'email' },
     (email, password, done) => {
-        axios.get(`http://localhost:5000/users?email=${email}`)
-            .then(res => {
-                const user = res.data[0]
-                if (!user) {
-                    return done(null, false, { message: 'login_invalid_creds' });
-                }
-                if (!bcrypt.compareSync(password, user.password)) {
-                    return done(null, false, { message: 'login_invalid_creds' });
-                }
-                return done(null, user);
-            })
-            .catch(error => done(error));
+
+        // replace the following with mongodb
+        console.log(`email = ${email}`)
+        console.log(`password = ${password}`)
+        User.findOne({'email': email}).exec(function (err, user) {
+            if (err) return done(err);
+            if (!user) {
+                return done(null, false, { message: 'login_invalid_creds' });
+            }
+            if (!bcrypt.compareSync(password, user.password)) {
+                return done(null, false, { message: 'login_invalid_creds' });
+            }
+            return done(null, user);
+        })
     }
 ));
 
@@ -33,9 +35,10 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser((id, done) => {
-    axios.get(`http://localhost:5000/users/${id}`)
-        .then(res => done(null, res.data) )
-        .catch(error => done(error, false))
+    User.findById(id).exec(function (err, user) {
+        if (err) return done(err, false);
+        return done(null, user);
+    })
 });
 
 
@@ -73,12 +76,43 @@ exports.signup_post = [
         // Extract the validation errors
         const errors = validationResult(req);
 
+        // create a user object with sanitized data
+        const user = new User(
+            {
+                email: req.body.email,
+                password: req.body.password
+            }
+        );
+
         if (!errors.isEmpty()) {
             // There are errors. Render the form again with error messages and sanitized values.
             res.render('user_form', { title: 'Sign Up Error', errors: errors.array()});
         }
         else {
 
+            // const password = req.body.password;
+            User.findOne({'email': user.email}).exec(function (err, existing_user) {
+                if (err) return next(err);
+                if (existing_user) {
+                    // email exists in db so render signup page with error message
+                    return res.render('user_form', {title: 'Sign Up Error', message: 'signup_email_registered'})
+                } else {
+
+                    // hash the password with bcrypt
+                    const saltRounds = 10;
+                    user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(saltRounds));
+
+                    // store user in db
+                    user.save(function (err) {
+                        if (err) return next(err);
+                        return res.redirect('/login?message=signup_success')
+                    })
+
+                }
+            })
+
+
+/*
             const password = req.body.password;
             axios.get(`http://localhost:5000/users?email=${req.body.email}`)
                 .then(res_axios => {
@@ -106,6 +140,7 @@ exports.signup_post = [
                     }
                 })
                 .catch(error => next(error));
+*/
         }
     }
 ];
