@@ -7,8 +7,8 @@ const { sanitizeBody } = require('express-validator/filter');
 // notes home page GET
 exports.index = function (req, res, next) {
 
-    // retrieve note names for menu
-    Note.find().select('name').sort({name: 1}).exec(function (err, names) {
+    // populate the "select a note" menu with notes names where user_id matches logged in user
+    Note.find({'user_id': req.user.id}).select().sort({name: 1}).exec(function (err, names) {
         if (err) return next(err);
         // success, so render page
         const message = req.query.message;
@@ -24,7 +24,7 @@ exports.note_detail_get = function(req, res, next) {
     // retrieve note names for menu and details for individual note
     async.parallel({
         names: function (callback) {
-            Note.find().select('name').sort({name: 1}).exec(callback);
+            Note.find({'user_id': req.user.id}).select('name').sort({name: 1}).exec(callback);
         },
         note: function (callback) {
             Note.findById(req.params.id, callback);
@@ -50,7 +50,7 @@ exports.note_detail_post = function (req, res, next) {
     // retrieve note names for menu and details for individual note
     async.parallel({
         names: function (callback) {
-            Note.find().select('name').sort({name: 1}).exec(callback);
+            Note.find({'user_id': req.user.id}).select('name').sort({name: 1}).exec(callback);
         },
         note: function (callback) {
             Note.findById(req.body.id, callback);
@@ -109,7 +109,7 @@ exports.note_create_post = [
         }
         else {
             // form data is valid, check if note with same name already exists
-            Note.findOne({'name': req.body.name}).exec(function(err, found_note) {
+            Note.findOne({'name': req.body.name, 'user_id': req.user.id}).exec(function(err, found_note) {
                 if (err) return next(err);
                 if (found_note) {
                     // note with same name exists, so re-render form with message
@@ -175,18 +175,30 @@ exports.note_update_post = [
             res.render('note_form', { title: 'Create Note', note: note, errors: errors.array() } );
         }
         else {
-            // form data is valid, check if note with same name already exists
-            Note.findOne({'name': req.body.name}).exec(function(err, found_note) {
+
+            // form data is valid
+            // check if note with same name already exists
+            Note.findOne({'name': req.body.name, 'user_id': req.user.id}).exec(function(err, found_note) {
+
                 if (err) return next(err);
+
+                // if we find a note with the same name, and its id differs from our note.id...
                 const found_id = found_note ? String(found_note._id) : null;
                 if (found_note && note._id != found_id) {
-                    // note with same name exists, so re-render form with message
+
+                    // ... then a note with same name exists, so re-render with error message
                     res.render('note_form', {title: 'Update Note: Error', note: note, message: 'name_exists'});
+
                 } else {
+
+                    // there is no other note with this name, so update in db
                     Note.findByIdAndUpdate(req.params.id, note, {}, function (err,updated_note) {
+
                         if (err) { return next(err); }
-                        // success - redirect to detail page for updated note
+
+                        // update succeeded, so redirect to detail page for the updated note
                         res.redirect(updated_note.url);
+
                     });
                 }
             })

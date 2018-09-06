@@ -1,28 +1,24 @@
-const createError = require('http-errors');
 const express = require('express');
+const session = require('express-session')
 const path = require('path');
 const cookieParser = require('cookie-parser');
-const logger = require('morgan');
+const bodyParser = require('body-parser');
+const createError = require('http-errors');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
 
 // for authentication
 const uuid = require('uuid/v4')
-const session = require('express-session')
 const FileStore = require('session-file-store')(session);
-const bodyParser = require('body-parser');
-const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const bcrypt = require('bcrypt-nodejs');
 
-// bring in the routers
+// routers
 const indexRouter = require('./routes/index');
 const notesRouter = require('./routes/notes');
 
-// compression and protection
+// compression, protection, logging
 const compression = require('compression');
 const helmet = require('helmet');
-const app = express();
-app.use(helmet());
-
+const logger = require('morgan');
 
 //Set up mongoose connection
 const mongoose = require('mongoose');
@@ -32,17 +28,23 @@ mongoose.Promise = global.Promise;
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
-// view engine setup
+// express app
+const app = express();
+
+// view engine
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
+// static path
+app.use(express.static(path.join(__dirname, 'public')));
+
+// clarify this section
+app.use(helmet());
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-
 app.use(compression()); //Compress all routes
-app.use(express.static(path.join(__dirname, 'public')));
 
 // from authorization tutorial
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -59,7 +61,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// use the routers
+// router middleware
 app.use('/', indexRouter);
 app.use('/notes', function (req, res, next) {
     if(!req.isAuthenticated())

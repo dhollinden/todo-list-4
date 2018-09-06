@@ -24,7 +24,7 @@ const notes = []
 const users = []
 
 function noteCreate(name, body, user_id, cb) {
-    notedetail = {name:name, body: body, user_id: user_id}
+    notedetail = {name:name, body: body, user_id: user_id} // warning: user_id is an object, not merely the a string such as req.body.id will be
 
     const note = new Note(notedetail);
 
