@@ -21,22 +21,34 @@ exports.index = function (req, res, next) {
 // individual note on GET (from redirects after updating a note)
 exports.note_detail_get = function(req, res, next) {
 
-    // retrieve note names for menu and details for individual note
     async.parallel({
+
+        // retrieve note names for menu
         names: function (callback) {
             Note.find({'user_id': req.user.id}).select('name').sort({name: 1}).exec(callback);
         },
+
+        // retrieve details for individual note
         note: function (callback) {
             Note.findById(req.params.id, callback);
         }
+
     }, function (err, results) {
+
         if (err) return next(err);
+
         if (results.note === null) { // No results
             const err = new Error('Note not found');
             err.status = 404;
             return next(err);
         }
-        // success, so render page
+
+        // if note doesn't belong to user, redirect
+        if (results.note.user_id !== req.user.id) {
+            return res.redirect('/notes?message=invalid');
+        }
+
+        // valid note belongs to user, so render page
         res.render('note_detail', {title: 'My Notes: ' + results.note.name, note: results.note, names: results.names});
 
     });
@@ -62,6 +74,11 @@ exports.note_detail_post = function (req, res, next) {
             err.status = 404;
             return next(err);
         }
+        // if note doesn't belong to user, redirect
+        if (results.note.user_id !== req.user.id) {
+            return res.redirect('/notes?message=invalid');
+        }
+
         // success, so render page
         res.render('note_detail', {title: 'My Notes: ' + results.note.name, note: results.note, names: results.names});
 
