@@ -61,8 +61,9 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// router middleware
+// routers
 app.use('/', indexRouter);
+// redirect unauthenticated users from /notes to home page
 app.use('/notes', function (req, res, next) {
     if(!req.isAuthenticated())
         res.redirect('/?message=not_logged_in');
