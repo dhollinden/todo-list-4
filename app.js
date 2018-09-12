@@ -49,10 +49,14 @@ app.use(compression()); //Compress all routes
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
+
+const secret = process.env.SECRET;
+console.log(`\nsecret = ${secret}\n`);
+
 app.use(session({
 
     name: 'sessionId',
-    secret: 'ADKHLa4LpR6Vr1z/MbWDEnjQk3Q=',
+    secret: secret,
     cookie: {
         secure: false,
         httpOnly: true,
