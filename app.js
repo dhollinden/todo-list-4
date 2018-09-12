@@ -1,32 +1,31 @@
 require('dotenv').config()
 const express = require('express');
-const session = require('cookie-session')
 const path = require('path');
+const session = require('cookie-session')
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const createError = require('http-errors');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 
-// for authentication
-const uuid = require('uuid/v4')
-
 // routers
 const indexRouter = require('./routes/index');
 const notesRouter = require('./routes/notes');
 
 // compression, protection, logging
-const compression = require('compression');
 const helmet = require('helmet');
 const logger = require('morgan');
+const compression = require('compression');
 
-//Set up mongoose connection
+
+// database connection
 const mongoose = require('mongoose');
 const mongoDB = process.env.MONGODB_URI || 'mongodb://todo-list-4-admin:todo-list-4-password@ds235461.mlab.com:35461/todo-list-4';
 mongoose.connect(mongoDB);
 mongoose.Promise = global.Promise;
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+
 
 // express app
 const app = express();
@@ -38,24 +37,21 @@ app.set('view engine', 'pug');
 // static path
 app.use(express.static(path.join(__dirname, 'public')));
 
-// clarify this section
 app.use(helmet());
 app.use(logger('dev'));
+app.use(compression()); //Compress all routes
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: false }))
+
+// clarify need for these
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(compression()); //Compress all routes
-
-// from authorization tutorial
-app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json())
 
 
+// session management
 const secret = process.env.SECRET;
 console.log(`\nsecret = ${secret}\n`);
-
 app.use(session({
-
     name: 'sessionId',
     secret: secret,
     cookie: {
@@ -68,6 +64,7 @@ app.use(session({
 }))
 app.use(passport.initialize());
 app.use(passport.session());
+
 
 // routers
 app.use('/', indexRouter);
