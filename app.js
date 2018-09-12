@@ -1,5 +1,5 @@
 const express = require('express');
-const session = require('express-session')
+const session = require('cookie-session')
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
@@ -9,7 +9,6 @@ const LocalStrategy = require('passport-local').Strategy;
 
 // for authentication
 const uuid = require('uuid/v4')
-const FileStore = require('session-file-store')(session);
 
 // routers
 const indexRouter = require('./routes/index');
@@ -49,14 +48,18 @@ app.use(compression()); //Compress all routes
 // from authorization tutorial
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
+
 app.use(session({
-    genid: (req) => {
-        return uuid() // use UUIDs for session IDs
-    },
-    store: new FileStore(),
-    secret: 'keyboard cat',
-    resave: false,
-    saveUninitialized: true
+
+    name: 'sessionId',
+    secret: 'ADKHLa4LpR6Vr1z/MbWDEnjQk3Q=',
+    cookie: {
+        secure: false,
+        httpOnly: true,
+        // domain: 'example.com',
+        // path: 'foo/bar',
+        expires: new Date(Date.now() + 60 * 60 * 1000) // 1 hour
+    }
 }))
 app.use(passport.initialize());
 app.use(passport.session());
