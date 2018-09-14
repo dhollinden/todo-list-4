@@ -2,12 +2,14 @@ extends layout
 
 block content
 
-    h1 Notes Home
+    h1 #{title}
 
     br
 
     if message === 'not_logged_in'
         div You must log in before you can work with notes.
+    else if message === 'logged_out'
+        div You have been logged out.
     else
         br
 

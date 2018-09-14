@@ -17,14 +17,20 @@ block content
 
     br
 
-    p Select a note from the menu
+    if names != ""
 
-    form(method='POST' action='/notes/')
-        div.form-group
-            select#id.form-control(type='select' placeholder='Select note list' name='id' required='true' )
-                for name in names
-                    option(value=name._id) #{name.name}
-        button.btn.btn-primary(type='submit') Submit
+        p Select a note from the menu
+
+        form(method='POST' action='/notes/')
+            div.form-group
+                select#id.form-control(type='select' placeholder='Select note list' name='id' required='true' )
+                    for name in names
+                        option(value=name._id) #{name.name}
+            button.btn.btn-primary(type='submit') Submit
+
+    else
+
+        a(href='/notes/create') Create new note
 
     br
 

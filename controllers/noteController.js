@@ -7,18 +7,29 @@ const { sanitizeBody } = require('express-validator/filter');
 // notes home page GET
 exports.index = function (req, res, next) {
 
-    // populate the "select a note" menu with notes names where user_id matches logged in user
-    Note.find({'user_id': req.user.id}).select().sort({name: 1}).exec(function (err, names) {
-        if (err) return next(err);
-        // success, so render page
-        const message = req.query.message;
-        res.render('notes', {title: 'My Notes', names: names, message: message});
-    });
+    // populate the "select a note" menu with notes names
+    // where user_id matches logged in user
+    Note.find({'user_id': req.user.id})
+        .select()
+        .sort({name: 1})
+        .exec(function (err, names) {
+
+            if (err) return next(err);
+            // success, so render page
+            const pageContent = {
+                title: 'My Notes',
+                names: names,
+                message: req.query.message,
+                authenticated: req.isAuthenticated()
+            }
+            res.render('notes', pageContent);
+
+        });
 
 };
 
 
-// individual note on GET (from redirects after updating a note)
+// individual note on GET (successful note updates redirect here)
 exports.note_detail_get = function(req, res, next) {
 
     async.parallel({
@@ -49,7 +60,13 @@ exports.note_detail_get = function(req, res, next) {
         }
 
         // valid note belongs to user, so render page
-        res.render('note_detail', {title: 'My Notes: ' + results.note.name, note: results.note, names: results.names});
+        const pageContent = {
+            title: 'My Notes: ' + results.note.name,
+            note: results.note,
+            names: results.names,
+            authenticated: req.isAuthenticated()
+        }
+        res.render('note_detail', pageContent);
 
     });
 
@@ -80,7 +97,13 @@ exports.note_detail_post = function (req, res, next) {
         }
 
         // success, so render page
-        res.render('note_detail', {title: 'My Notes: ' + results.note.name, note: results.note, names: results.names});
+        const pageContent = {
+            title: 'My Notes: ' + results.note.name,
+            note: results.note,
+            names: results.names,
+            authenticated: req.isAuthenticated()
+        }
+        res.render('note_detail', pageContent);
 
     });
 
@@ -89,7 +112,11 @@ exports.note_detail_post = function (req, res, next) {
 
 // note create on GET
 exports.note_create_get = function(req, res, next) {
-    res.render('note_form', { title: 'Create Note' });
+    const pageContent = {
+        title: 'Create Note',
+        authenticated: req.isAuthenticated()
+    }
+    res.render('note_form', pageContent);
 };
 
 
@@ -122,7 +149,13 @@ exports.note_create_post = [
 
         if (!errors.isEmpty()) {
             // there are validation errors, so render form again with sanitized values and error messages
-            res.render('note_form', {title: 'Create Note: Error', note: note, errors: errors.array()});
+            const pageContent = {
+                title: 'Create Note: Error',
+                note: note,
+                errors: errors.array(),
+                authenticated: req.isAuthenticated()
+            }
+            res.render('note_form', pageContent);
         }
         else {
             // form data is valid, check if note with same name already exists
@@ -130,7 +163,13 @@ exports.note_create_post = [
                 if (err) return next(err);
                 if (found_note) {
                     // note with same name exists, so re-render form with message
-                    res.render('note_form', {title: 'Create Note: Error', note: note, message: 'name_exists'});
+                    const pageContent = {
+                        title: 'Create Note: Error',
+                        note: note,
+                        message: 'name_exists',
+                        authenticated: req.isAuthenticated()
+                    }
+                    res.render('note_form', pageContent);
                 } else {
                     note.save(function(err) {
                         console.log(`note.user_id = ${note.user_id}`);
@@ -157,7 +196,12 @@ exports.note_update_get = function (req, res, next) {
             return next(err);
         }
         // success, so render page
-        res.render('note_form', { title: 'Update Note: ' + note.name, note: note });
+        const pageContent = {
+            title: 'Update Note: ' + note.name,
+            note: note,
+            authenticated: req.isAuthenticated()
+        }
+        res.render('note_form', pageContent);
     })
 
 }
@@ -189,7 +233,13 @@ exports.note_update_post = [
 
         if (!errors.isEmpty()) {
             // there are validation errors, so render form again with sanitized values and error messages
-            res.render('note_form', { title: 'Create Note', note: note, errors: errors.array() } );
+            const pageContent = {
+                title: 'Update Note: Error',
+                note: note,
+                errors: errors.array(),
+                authenticated: req.isAuthenticated()
+            }
+            res.render('note_form', pageContent);
         }
         else {
 
@@ -204,7 +254,13 @@ exports.note_update_post = [
                 if (found_note && note._id != found_id) {
 
                     // ... then a note with same name exists, so re-render with error message
-                    res.render('note_form', {title: 'Update Note: Error', note: note, message: 'name_exists'});
+                    const pageContent = {
+                        title: 'Update Note: Error',
+                        note: note,
+                        message: 'name_exists',
+                        authenticated: req.isAuthenticated()
+                    }
+                    res.render('note_form', pageContent);
 
                 } else {
 
@@ -229,10 +285,21 @@ exports.note_update_post = [
 exports.note_delete_get = function (req, res, next) {
 
     Note.findById(req.params.id).exec(function(err, note) {
+
         if (err) return next(err);
-        if (note === null) { res.redirect('/notes'); } // note does not exist, so redirect to home page
+
+        // if note does not exist, redirect to home page
+        console.log(`note = ${note} and typeof note = ${typeof note}`)
+        console.log(`note === null evaluates as ${note === null}`);
+        if (note === null) { return res.redirect('/notes?message=invalid'); }
+
         // successful, so render
-        res.render('note_delete', { title: 'Delete Note: ' + note.name, note: note });
+        const pageContent = {
+            title: 'Delete Note: ' + note.name,
+            note: note,
+            authenticated: req.isAuthenticated()
+        }
+        res.render('note_delete', pageContent);
     })
 
 }

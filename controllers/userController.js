@@ -8,38 +8,59 @@ const { sanitizeBody } = require('express-validator/filter');
 
 // ------------- Passport -------------
 
-// configure passport.js to use the local strategy
+// configure passport to use the local strategy
 passport.use(new LocalStrategy(
+
     { usernameField: 'email' },
+
     (email, password, done) => {
 
-        // replace the following with mongodb
-        console.log(`email = ${email}`)
-        console.log(`password = ${password}`)
         User.findOne({'email': email}).exec(function (err, user) {
+
+            // if there is an error while looking for user, return "done" with the error
             if (err) return done(err);
+
+            // if there is no user with the supplied email address, return "done" with an error message
             if (!user) {
                 return done(null, false, { message: 'login_invalid_creds' });
             }
+
+            // if user's password doesn't match the supplied password, return "done" with an error message
             if (!bcrypt.compareSync(password, user.password)) {
                 return done(null, false, { message: 'login_invalid_creds' });
             }
+
+            // is user is found and password matches, return "done" with the user
             return done(null, user);
         })
     }
 ));
 
-// tell passport how to serialize and deserialize the user
+
+// tell passport how to serialize the user
 passport.serializeUser((user, done) => {
+
+    // given a user, simply return "done" with the user.id
     done(null, user.id);
+
 });
 
+// tell passport how to deserialize the user
 passport.deserializeUser((id, done) => {
+
+    // search for user by id
     User.findById(id).exec(function (err, user) {
+
+        // if the search results in an error, return "done" with the error and no user
         if (err) return done(err, false);
+
+        // if user is found, return "done" with the user
         return done(null, user);
     })
+
 });
+
+
 
 
 // ------------- callbacks -------------
@@ -48,24 +69,36 @@ passport.deserializeUser((id, done) => {
 exports.index = function (req, res, next) {
 
     const message = req.query.message;
-    res.render('index', {message: message});
+    const pageContent = {
+        title: 'Notes Home',
+        message: message,
+        authenticated: req.isAuthenticated()
+    }
+    res.render('index', pageContent);
 }
 
 
-// signup page GET
+// signup GET
 exports.signup_get = function (req, res, next) {
 
-    res.render('user_form', {title: 'Sign Up'});
+    const pageContent = {
+        title: 'Sign Up',
+        authenticated: req.isAuthenticated()
+    }
+    res.render('user_form', pageContent);
 
 };
 
 
-// signup page POST
+// signup POST
 exports.signup_post = [
 
     // Validate email and password
-    body('email', 'You must enter a valid email address.').isEmail(),
-    body('password', 'Your password must be at least eight characters long.').isLength({ min: 8 }).trim(),
+    body('email', 'You must enter a valid email address.')
+        .isEmail(),
+    body('password', 'Your password must be at least eight characters long.')
+        .isLength({ min: 8 })
+        .trim(),
 
     // Sanitize email, but not password
     sanitizeBody('email').trim().escape(),
@@ -85,72 +118,67 @@ exports.signup_post = [
         );
 
         if (!errors.isEmpty()) {
-            // There are errors. Render the form again with error messages and sanitized values.
-            res.render('user_form', { title: 'Sign Up Error', errors: errors.array()});
+
+            // there are validation errors
+            // render again with error messages and sanitized values
+            const pageContent = {
+                title: 'Sign Up Error',
+                errors: errors.array(),
+                authenticated: req.isAuthenticated()
+            }
+            res.render('user_form', pageContent);
+
         }
+
         else {
 
-            // const password = req.body.password;
+            // check whether email address has already been used
             User.findOne({'email': user.email}).exec(function (err, existing_user) {
+
                 if (err) return next(err);
+
                 if (existing_user) {
-                    // email exists in db so render signup page with error message
-                    return res.render('user_form', {title: 'Sign Up Error', message: 'signup_email_registered'})
+
+                    // email has been used, render again with error message
+                    const pageContent = {
+                        title: 'Sign Up Error',
+                        message: 'signup_email_registered',
+                        authenticated: req.isAuthenticated()
+                    }
+                    res.render('user_form', pageContent);
+
                 } else {
 
-                    // hash the password with bcrypt
+                    //email is new, hash the password
                     const saltRounds = 10;
                     user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(saltRounds));
 
-                    // store user in db
+                    // save user
                     user.save(function (err) {
+
                         if (err) return next(err);
+
                         return res.redirect('/login?message=signup_success')
+
                     })
 
                 }
             })
-
-
-/*
-            const password = req.body.password;
-            axios.get(`http://localhost:5000/users?email=${req.body.email}`)
-                .then(res_axios => {
-                    const user = res_axios.data[0];
-                    if (user) {
-                        // email exists in db so return to signup page
-                        return res.render('user_form', {title: 'Sign Up Error', message: 'signup_email_registered'})
-                    } else {
-
-                        // hash the password with bcrypt and create random id
-                        const saltRounds = 10;
-                        const hash = bcrypt.hashSync(password, bcrypt.genSaltSync(saltRounds));
-                        const id = Math.random().toString(36).substring(2, 9);
-
-                        // store data in the db.json using axios.post()
-                        axios.post('http://localhost:5000/users', {
-                            id: id,
-                            email: req.body.email,
-                            password: hash
-                        })
-                        .then(function (response) {
-                            return res.redirect('/login?message=signup_success')
-                        })
-                        .catch(error => next(error));
-                    }
-                })
-                .catch(error => next(error));
-*/
         }
     }
 ];
 
 
-// login page GET
+// login GET
 exports.login_get = function (req, res, next) {
 
     const message = req.query.message;
-    res.render('user_form', {title: 'Log In', message: message});
+    const pageContent = {
+        title: 'Log In',
+        message: message,
+        authenticated: req.isAuthenticated()
+    }
+    res.render('user_form', pageContent);
 
 };
 
@@ -159,8 +187,11 @@ exports.login_get = function (req, res, next) {
 exports.login_post = [
 
     // Validate email. Require password, but do not validate min length of 8
-    body('email', 'You must enter a valid email address.').isEmail(),
-    body('password', 'You must enter a password.').isLength({ min: 1 }).trim(),
+    body('email', 'You must enter a valid email address.')
+        .isEmail(),
+    body('password', 'You must enter a password.')
+        .isLength({ min: 1 })
+        .trim(),
 
     // Sanitize email, but not password
     sanitizeBody('email').trim().escape(),
@@ -172,31 +203,56 @@ exports.login_post = [
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
-            // There are errors. Render the form again with error messages and sanitized values.
-            res.render('user_form', {title: 'Log In Error', errors: errors.array()});
+
+            // there are validation errors
+            // render again with error messages and sanitized values
+            const pageContent = {
+                title: 'Log In Error',
+                errors: errors.array(),
+                authenticated: req.isAuthenticated()
+            }
+            res.render('user_form', pageContent);
+
         }
         else {
 
             // authenticate using Passport local strategy
             passport.authenticate('local', (err, user, info) => {
 
-                // check for messages, and render page again
-                if (info) return res.render('user_form', {title: 'Log In', message: info.message});
-
-                // check for error during authentication
+                // check for authentication error
                 if (err) return next(err);
 
-                // check for no user (for any reason)
-                if (!user) return res.redirect('/login');
+                // if Passport returns "info" about problems with credentials, render page again
+                if (info) {
 
-                // success, so log in user
+                    const pageContent = {
+                        title: 'Log In',
+                        message: info.message,
+                        authenticated: req.isAuthenticated()
+                    }
+                    return res.render('user_form', pageContent);
+
+                }
+
+                // authentication was successful, so log in user
                 req.login(user, (err) => {
+
                     if (err) return next(err);
+
                     res.redirect('/notes?message=login_success');
+
                 })
+
             })(req, res, next);
         }
     }
 ];
 
 
+// logout POST
+exports.logout_get = function (req, res, next) {
+
+    req.logout();
+    res.redirect('/?message=logged_out')
+
+}
