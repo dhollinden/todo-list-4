@@ -4,30 +4,40 @@ const router = express.Router();
 // require controller module
 const user_controller = require('../controllers/userController');
 
+
 // ROUTES
 
-/* GET home page. */
+// home page GET
 router.get('/', user_controller.index);
 
 
-// GET request for signup page
+// Signup user
+// GET
 router.get('/signup', user_controller.signup_get);
-
-
-// POST request for signup page
+// POST
 router.post('/signup', user_controller.signup_post)
 
 
-// GET request for login page
+// Log In user
+// GET
 router.get('/login', user_controller.login_get);
-
-
-// POST request for login page
+// POST
 router.post('/login', user_controller.login_post)
 
 
-// GET request for lougout page
+// Log Out user
+// GET
 router.get('/logout', user_controller.logout_get);
+
+
+// User account
+// GET
+router.get('/account', user_controller.account);
+// GET
+router.get('/account_delete/:id', user_controller.account_delete)
+
+
+// Update user
 
 
 module.exports = router;

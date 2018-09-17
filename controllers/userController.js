@@ -1,6 +1,7 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const User = require('../models/user_model');
+const Note = require('../models/note_model');
 const bcrypt = require('bcrypt-nodejs');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
@@ -254,5 +255,57 @@ exports.logout_get = function (req, res, next) {
 
     req.logout();
     res.redirect('/?message=logged_out')
+
+}
+
+
+// account GET
+exports.account = function (req, res, next) {
+
+    const message = req.query.message;
+
+    // retrieve notes where user_id matches logged in user
+    Note.find({'user_id': req.user.id})
+        .select()
+        .sort({name: 1})
+        .exec(function (err, notes) {
+
+            if (err) return next(err);
+
+            // render page
+            const pageContent = {
+                title: 'My Account',
+                email: req.user.email,
+                user_id: req.user.id,
+                notes: notes,
+                message: message,
+                authenticated: req.isAuthenticated()
+            }
+            res.render('user_account', pageContent);
+
+        });
+};
+
+
+// account delete GET
+exports.account_delete = function (req, res, next) {
+
+    // delete notes
+    Note.deleteMany({user_id: req.params.id}, function (err) {
+
+        if (err) return next(err);
+
+    })
+
+    // delete user
+    User.deleteOne({_id: req.params.id}, function (err) {
+
+        if (err) return next(err);
+
+    })
+
+    // logout user, redirect to home page
+    req.logOut()
+    res.redirect('/?message=account_deleted');
 
 }
