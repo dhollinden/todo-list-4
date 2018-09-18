@@ -1,0 +1,30 @@
+extends layout
+
+block content
+
+    h1 #{title}
+
+    br
+
+    if message === "email_update_registered"
+        div That email address is already in use.
+    else if errors
+        for error in errors
+            div!= error.msg
+    else
+        br
+
+    br
+
+    form(method='POST' action='')
+        div.form-group
+            label(for='cur') Current email address
+            input#cur.form-control(type='text', placeholder='current email address', name='cur_email', value=email)
+        div.form-group
+            label(for='new') New email address
+            input#new.form-control(type='text', placeholder='new email address', name='new_email', value='')
+        button.btn.btn-primary(type='submit') Submit
+
+    br
+    div
+        a(href='/account') Cancel

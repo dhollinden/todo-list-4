@@ -287,25 +287,117 @@ exports.account = function (req, res, next) {
 };
 
 
+
 // account delete GET
 exports.account_delete = function (req, res, next) {
 
-    // delete notes
-    Note.deleteMany({user_id: req.params.id}, function (err) {
+    // check if id on query string matches id of logged in user
+    if (req.user.id == req.params.id) {
+
+        // delete notes
+        Note.deleteMany({user_id: req.user.id}, function (err) {
+            if (err) return next(err);
+        })
+
+        // delete user
+        User.deleteOne({_id: req.user.id}, function (err) {
+            if (err) return next(err);
+        })
+
+        // logout user, redirect to home page
+        req.logOut()
+        res.redirect('/?message=account_deleted');
+
+    } else {
+
+        // ids don't match, so redirect
+        res.redirect('/account?message=delete_failed')
+    }
+}
+
+
+// account email update GET
+exports.account_email_get = function (req, res, next) {
+
+    // look up current email in database  --- unnecessary?
+    User.findById(req.user.id, function (err, account) {
 
         if (err) return next(err);
 
+        // render page
+        const message = req.query.message;
+        const pageContent = {
+            title: 'My Account: Update Email Address',
+            email: account.email,
+            message: message,
+            authenticated: req.isAuthenticated()
+        }
+        res.render('user_email_form', pageContent);
     })
-
-    // delete user
-    User.deleteOne({_id: req.params.id}, function (err) {
-
-        if (err) return next(err);
-
-    })
-
-    // logout user, redirect to home page
-    req.logOut()
-    res.redirect('/?message=account_deleted');
 
 }
+
+// account email update POST
+exports.account_email_post = [
+
+    // Validate email
+    body('new_email', 'You must enter a valid email address for the new email address.')
+        .isEmail(),
+
+    // Sanitize email
+    sanitizeBody('new_email').trim().escape(),
+
+    // Process request
+    (req, res, next) => {
+
+        // Extract the validation errors
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+
+            // there are errors, so render again with error messages
+            const pageContent = {
+                title: 'My Account: Update Email Address',
+                email: req.user.email,
+                errors: errors.array(),
+                authenticated: req.isAuthenticated()
+            }
+            res.render('user_email_form', pageContent);
+
+        }
+
+        else {
+
+            // check whether email address has already been used
+            User.findOne({'email': req.body.new_email}).exec(function (err, existing_user) {
+
+                if (err) return next(err);
+
+                if (existing_user) {
+
+                    // email has been used, render again with error message
+                    const pageContent = {
+                        title: 'My Account: Update Email Address: Error',
+                        message: 'email_update_registered',
+                        authenticated: req.isAuthenticated()
+                    }
+                    res.render('user_email_form', pageContent);
+
+                } else {
+
+                    // update email address
+                    User.findByIdAndUpdate(req.user.id, {email: req.body.new_email}, function (err) {
+
+                        if (err) return next(err);
+
+                        return res.redirect('/account?message=email_update_success')
+
+                    })
+
+                }
+            })
+        }
+    }
+];
+
+

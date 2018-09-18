@@ -30,14 +30,21 @@ router.post('/login', user_controller.login_post)
 router.get('/logout', user_controller.logout_get);
 
 
-// User account
+// View account
 // GET
 router.get('/account', user_controller.account);
+
+
+// Delete account
 // GET
 router.get('/account_delete/:id', user_controller.account_delete)
 
 
-// Update user
+// Update email
+//GET
+router.get('/account_email/', user_controller.account_email_get)
+//POST
+router.post('/account_email/', user_controller.account_email_post)
 
 
 module.exports = router;
