@@ -22,7 +22,7 @@ const compression = require('compression');
 // database connection
 const mongoose = require('mongoose');
 const mongoDB = process.env.MONGODB_URI || 'mongodb://todo-list-4-admin:todo-list-4-password@ds235461.mlab.com:35461/todo-list-4';
-mongoose.connect(mongoDB);
+mongoose.connect(mongoDB, { useNewUrlParser: true });
 mongoose.Promise = global.Promise;
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
@@ -52,7 +52,6 @@ app.use(express.urlencoded({ extended: false }));
 
 // session management
 const secret = process.env.SECRET;
-console.log(`\nsecret = ${secret}\n`);
 app.use(session({
     name: 'sessionId',
     secret: secret,
