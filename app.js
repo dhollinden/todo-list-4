@@ -1,6 +1,7 @@
 require('dotenv').config()
 const express = require('express');
 const path = require('path');
+const favicon = require('serve-favicon');
 const session = require('cookie-session')
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
@@ -40,6 +41,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(helmet());
 app.use(logger('dev'));
 app.use(compression()); //Compress all routes
+app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: false }))
 
