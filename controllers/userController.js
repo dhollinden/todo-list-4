@@ -150,7 +150,7 @@ exports.signup_post = [
 
                 } else {
 
-                    //email is new, hash the password
+                    // email is new, hash the password
                     const saltRounds = 10;
                     user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(saltRounds));
 
@@ -396,6 +396,88 @@ exports.account_email_post = [
 
                 }
             })
+        }
+    }
+];
+
+
+
+// account password update GET
+exports.account_password_get = function (req, res, next) {
+
+    // render page
+    const message = req.query.message;
+    const pageContent = {
+        title: 'My Account: Update Password',
+        message: message,
+        authenticated: req.isAuthenticated()
+    }
+    res.render('user_password_form', pageContent);
+
+}
+
+
+// account password update POST
+exports.account_password_post = [
+
+    // validate new password field
+    body('new_password', 'Your new password must be at least eight characters long.')
+        .isLength({ min: 8 })
+        .trim(),
+
+    // do not sanitize password fields
+
+    // Process request
+    (req, res, next) => {
+
+        // Extract the validation errors
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+
+            // there are errors, so render again with error messages
+            const pageContent = {
+                title: 'My Account: Update Password: Error',
+                password: req.user.password,
+                errors: errors.array(),
+                authenticated: req.isAuthenticated()
+            }
+            res.render('user_password_form', pageContent);
+
+        }
+
+        else {
+
+            // check if submitted current password matches what's in database
+            if (!bcrypt.compareSync(req.body.cur_password, req.user.password)) {
+
+                // no match, so render page with error message
+                const pageContent = {
+                    title: 'My Account: Update Password: Error',
+                    message: 'incorrect_password',
+                    authenticated: req.isAuthenticated()
+                }
+                res.render('user_password_form', pageContent);
+
+            }
+
+            else {
+
+                // passwords match, so hash the new password
+                const saltRounds = 10;
+                const new_password_hashed = bcrypt.hashSync(req.body.new_password, bcrypt.genSaltSync(saltRounds));
+
+                // update the password
+                User.findByIdAndUpdate(req.user.id, {password: new_password_hashed}, function (err) {
+
+                    if (err) return next(err);
+
+                    return res.redirect('/account?message=password_update_success')
+
+                })
+
+            }
+
         }
     }
 ];

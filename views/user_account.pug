@@ -11,9 +11,11 @@ block content
         span &nbsp;&nbsp;
         a(href='/account') #[strong No]
     else if message === 'delete_failed'
-        div No account was deleted
+        div No account was deleted.
     else if message === 'email_update_success'
         div Your email address was updated.
+    else if message === 'password_update_success'
+        div Your password was updated.
     else
         br
 

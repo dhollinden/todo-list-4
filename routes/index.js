@@ -15,14 +15,14 @@ router.get('/', user_controller.index);
 // GET
 router.get('/signup', user_controller.signup_get);
 // POST
-router.post('/signup', user_controller.signup_post)
+router.post('/signup', user_controller.signup_post);
 
 
 // Log In user
 // GET
 router.get('/login', user_controller.login_get);
 // POST
-router.post('/login', user_controller.login_post)
+router.post('/login', user_controller.login_post);
 
 
 // Log Out user
@@ -37,14 +37,21 @@ router.get('/account', user_controller.account);
 
 // Delete account
 // GET
-router.get('/account_delete/:id', user_controller.account_delete)
+router.get('/account_delete/:id', user_controller.account_delete);
 
 
 // Update email
 //GET
-router.get('/account_email/', user_controller.account_email_get)
+router.get('/account_email/', user_controller.account_email_get);
 //POST
-router.post('/account_email/', user_controller.account_email_post)
+router.post('/account_email/', user_controller.account_email_post);
+
+
+// Update password
+// GET
+router.get('/account_password', user_controller.account_password_get);
+// POST
+router.post('/account_password', user_controller.account_password_post);
 
 
 module.exports = router;
