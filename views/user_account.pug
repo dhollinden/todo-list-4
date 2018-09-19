@@ -5,12 +5,7 @@ block content
     h1 #{title}
     br
 
-    if message === 'delete'
-        div #[strong Are you sure you want to delete your account?]&nbsp;&nbsp;
-        a(href='/account_delete/' + user_id) #[strong Yes]
-        span &nbsp;&nbsp;
-        a(href='/account') #[strong No]
-    else if message === 'delete_failed'
+    if message === 'delete_failed'
         div No account was deleted.
     else if message === 'email_update_success'
         div Your email address was updated.
@@ -40,12 +35,22 @@ block content
             li You have not created any notes
 
 
+    hr
+
     if message !== 'delete'
 
-        hr
         p
             a(href='/account_email') Update email address
         p
             a(href='/account_password') Update password
         p
             a(href='/account?message=delete') Delete account
+
+    else
+
+        br
+
+        div #[strong Are you sure you want to delete your account?]&nbsp;&nbsp;
+            a(href='/account_delete/' + user_id) #[strong Yes]
+            span &nbsp;&nbsp;
+            a(href='/account') #[strong No]
