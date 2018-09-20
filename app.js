@@ -1,17 +1,20 @@
+// load environment variables from a .env file into process.env
 require('dotenv').config()
+
 const express = require('express');
 const path = require('path');
 const favicon = require('serve-favicon');
 const session = require('cookie-session')
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-const createError = require('http-errors');
+// const createError = require('http-errors');
 const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
+
 
 // routers
 const indexRouter = require('./routes/index');
 const notesRouter = require('./routes/notes');
+
 
 // compression, protection, logging
 const helmet = require('helmet');
@@ -28,16 +31,11 @@ const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 
-// express app
 const app = express();
 
-// view engine
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
-
-// static path
 app.use(express.static(path.join(__dirname, 'public')));
-
 app.use(helmet());
 app.use(logger('dev'));
 app.use(compression()); //Compress all routes
@@ -46,8 +44,8 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: false }))
 
 // clarify need for these
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// app.use(express.json());
+// app.use(express.urlencoded({ extended: false }));
 
 
 // session management
@@ -77,11 +75,14 @@ app.use('/notes', function (req, res, next) {
         next()
 }, notesRouter);
 
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-    console.log("err = ", err);
-    next(createError(404));
+    const err = new Error('Not Found');
+    err.status = 404;
+    next(err);
 });
+
 
 // error handler
 app.use(function(err, req, res, next) {
@@ -93,5 +94,6 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
 
 module.exports = app;

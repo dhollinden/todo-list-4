@@ -8,7 +8,7 @@ block content
     if (errors)
         for error in errors
             div!= error.msg
-    else if message == 'name_exists'
+    else if message === 'name_exists'
         div A note with that name already exists.
     else
         br

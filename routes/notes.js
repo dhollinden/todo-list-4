@@ -4,14 +4,16 @@ const router = express.Router();
 // require controller module
 const note_controller = require('../controllers/noteController');
 
+
 // ROUTES
 
-
-// Notes section GET
+// Notes
+// GET
 router.get('/', note_controller.index);
 
 
-// Display note POST
+// Display note
+// POST
 router.post('/', note_controller.note_detail_post);
 
 
@@ -36,8 +38,8 @@ router.get('/:id/delete', note_controller.note_delete_get);
 router.post('/:id/delete', note_controller.note_delete_post);
 
 
-
-// Display note GET
+// Display note
+// GET
 router.get('/:id', note_controller.note_detail_get);
 
 
