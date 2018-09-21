@@ -3,8 +3,10 @@
 ### todo-list-4
 
 * website was created with Express generator
-* notes are stored in  mLab database
-* website is hosted on Heroku
+* notes and users are stored in mLab database
+* authentication performed wtih Passport
+* cookies signed and stored on client with cookie-session
+* site is hosted on Heroku
 
 
 ### todo-list-3

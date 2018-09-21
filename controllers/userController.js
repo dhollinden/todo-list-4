@@ -41,7 +41,7 @@ passport.use(new LocalStrategy(
 // tell passport how to serialize the user
 passport.serializeUser((user, done) => {
 
-    // given a user, simply return "done" with the user.id
+    // given a user, simply call "done" with the user.id
     done(null, user.id);
 
 });
@@ -76,6 +76,7 @@ exports.index = function (req, res, next) {
         authenticated: req.isAuthenticated()
     }
     res.render('index', pageContent);
+
 }
 
 
@@ -94,20 +95,21 @@ exports.signup_get = function (req, res, next) {
 // signup POST
 exports.signup_post = [
 
-    // Validate email and password
+    // validate email and password
     body('email', 'You must enter a valid email address.')
         .isEmail(),
+
     body('password', 'Your password must be at least eight characters long.')
         .isLength({ min: 8 })
         .trim(),
 
-    // Sanitize email, but not password
+    // sanitize email, but not password
     sanitizeBody('email').trim().escape(),
 
-    // Process request
+    // process request
     (req, res, next) => {
 
-        // Extract the validation errors
+        // extract any validation errors
         const errors = validationResult(req);
 
         // create a user object with sanitized data
@@ -121,9 +123,10 @@ exports.signup_post = [
         if (!errors.isEmpty()) {
 
             // there are validation errors
-            // render again with error messages and sanitized values
+            // render again with error messages and sanitized email
             const pageContent = {
                 title: 'Sign Up Error',
+                email: user.email,
                 errors: errors.array(),
                 authenticated: req.isAuthenticated()
             }
@@ -148,7 +151,9 @@ exports.signup_post = [
                     }
                     res.render('user_form', pageContent);
 
-                } else {
+                }
+
+                else {
 
                     // email is new, hash the password
                     const saltRounds = 10;
@@ -159,6 +164,7 @@ exports.signup_post = [
 
                         if (err) return next(err);
 
+                        // save was successful, redirect to login page
                         return res.redirect('/login?message=signup_success')
 
                     })
@@ -190,6 +196,7 @@ exports.login_post = [
     // Validate email. Require password, but do not validate min length of 8
     body('email', 'You must enter a valid email address.')
         .isEmail(),
+
     body('password', 'You must enter a password.')
         .isLength({ min: 1 })
         .trim(),
@@ -227,7 +234,7 @@ exports.login_post = [
                 if (info) {
 
                     const pageContent = {
-                        title: 'Log In',
+                        title: 'Log In Error',
                         message: info.message,
                         authenticated: req.isAuthenticated()
                     }
