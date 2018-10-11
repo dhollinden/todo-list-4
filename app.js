@@ -1,8 +1,8 @@
 // load environment variables from a .env file into process.env
 require('dotenv').config()
 
-const path = require('path');
 const express = require('express');
+const path = require('path');
 const favicon = require('serve-favicon');
 const session = require('cookie-session')
 const cookieParser = require('cookie-parser');

@@ -5,7 +5,6 @@ const Note = require('../models/note_model');
 const bcrypt = require('bcrypt-nodejs');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
-const s3 = require('../modules/s3_store');
 
 
 // ------------- Passport -------------
@@ -160,18 +159,6 @@ exports.signup_post = [
                     const saltRounds = 10;
                     user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(saltRounds));
 
-                    // save user in s3
-                    const params = {database: 'key-val-store', collection: 'User', payload: user}
-                    s3.putObject(params)
-                    .then( () => {
-                        // console.log(`successful save to s3 = ${user}`)
-                        return res.redirect('/login?message=signup_success')
-                    })
-                    .catch(err => {
-                        if (err) return next(err);
-                    })
-
-/*
                     // save user
                     user.save(function (err) {
 
@@ -181,8 +168,6 @@ exports.signup_post = [
                         return res.redirect('/login?message=signup_success')
 
                     })
-
-*/
 
                 }
             })
