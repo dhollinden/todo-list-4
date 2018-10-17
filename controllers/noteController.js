@@ -52,7 +52,7 @@ exports.note_detail_get = function(req, res, next) {
 
         });
 
-    // retrieve details for individual note
+    // retrieve details for individual note specified in params
     read(Note, {'_id': req.params.id})
         .then(function (note) {
 
@@ -93,6 +93,59 @@ exports.note_detail_get = function(req, res, next) {
 // individual note on POST (from notes menu)
 exports.note_detail_post = function (req, res, next) {
 
+    let menuNames = '';
+    // retrieve notes where user_id matches logged in user (for Notes menu)
+    read(Note, {'user_id': req.user.id},'name', {name: 1} )
+        .then(function (names) {
+
+            console.log(`inside note detail POST, reading db for Notes menu`)
+            Object.keys(names).forEach(key => { console.log(`key = ${key}, value = ${names[key]}`) });
+
+            menuNames = names;
+
+        }, function (err) {
+
+            if (err) return next(err);
+
+        });
+
+    // retrieve details for individual note specified in req.body
+    read(Note, {'_id': req.body.id})
+        .then(function (note) {
+
+            console.log(`inside note detail POST, reading db for individual note`)
+            Object.keys(note).forEach(key => { console.log(`key = ${key}, value = ${note[key]}`) });
+
+            // return an error if there are no results
+            if (note[0] === null) {
+                return res.redirect('/notes?message=invalid');
+            }
+
+            console.log(`note[0].user_id = ${note[0].user_id}`)
+            console.log(`req.user.id = ${req.user.id}`)
+            // return an error if note doesn't belong to user
+            if (note[0].user_id !== req.user.id) {
+                return res.redirect('/notes?message=not_yours');
+            }
+
+            // note is valid and belongs to user, so render page
+            const pageContent = {
+                title: 'My Notes: ' + note[0].name,
+                note: note[0],
+                names: menuNames,
+                authenticated: req.isAuthenticated()
+            }
+            res.render('note_detail', pageContent);
+
+
+        }, function (err) {
+
+            if (err) return next(err);
+
+        });
+
+
+/*
     async.parallel({
 
         // retrieve note names for menu
@@ -132,6 +185,7 @@ exports.note_detail_post = function (req, res, next) {
         res.render('note_detail', pageContent);
 
     });
+*/
 
 };
 
