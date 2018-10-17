@@ -3,17 +3,17 @@ const async = require('async');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 
+const {read} = require('../modules/crudMondoDB');
 
 // notes home GET
 exports.index = function (req, res, next) {
 
-    // populate menu with notes where user_id matches logged in user
-    Note.find({'user_id': req.user.id})
-        .select('name')
-        .sort({name: 1})
-        .exec(function (err, names) {
+    // retrieve notes where user_id matches logged in user (for Notes menu)
+    read(Note, {'user_id': req.user.id},'name', {name: 1} )
+        .then(function (names) {
 
-            if (err) return next(err);
+            console.log(`inside notes home GET, reading db for Notes menu`)
+            Object.keys(names).forEach(key => { console.log(`key = ${key}, value = ${names[key]}`) });
 
             // render page
             const pageContent = {
@@ -24,6 +24,10 @@ exports.index = function (req, res, next) {
             }
             res.render('notes', pageContent);
 
+        }, function (err) {
+
+            if (err) return next(err);
+
         });
 
 };
@@ -32,45 +36,56 @@ exports.index = function (req, res, next) {
 // note detail GET (successful note updates redirect here)
 exports.note_detail_get = function(req, res, next) {
 
-    async.parallel({
+    let menuNames = '';
+    // retrieve notes where user_id matches logged in user (for Notes menu)
+    read(Note, {'user_id': req.user.id},'name', {name: 1} )
+        .then(function (names) {
 
-        // retrieve note names for menu
-        names: function (callback) {
-            Note.find({'user_id': req.user.id})
-                .select('name')
-                .sort({name: 1})
-                .exec(callback);
-        },
+            console.log(`inside note detail GET, reading db for Notes menu`)
+            Object.keys(names).forEach(key => { console.log(`key = ${key}, value = ${names[key]}`) });
 
-        // retrieve details for individual note
-        note: function (callback) {
-            Note.findById(req.params.id, callback);
-        }
+            menuNames = names;
 
-    }, function (err, results) {
+        }, function (err) {
 
-        if (err) return next(err);
+            if (err) return next(err);
 
-        // return an error if there are no results
-        if (results.note === null) {
-            return res.redirect('/notes?message=invalid');
-        }
+        });
 
-        // return an error if note doesn't belong to user
-        if (results.note.user_id !== req.user.id) {
-            return res.redirect('/notes?message=not_yours');
-        }
+    // retrieve details for individual note
+    read(Note, {'_id': req.params.id})
+        .then(function (note) {
 
-        // note is valid and belongs to user, so render page
-        const pageContent = {
-            title: 'My Notes: ' + results.note.name,
-            note: results.note,
-            names: results.names,
-            authenticated: req.isAuthenticated()
-        }
-        res.render('note_detail', pageContent);
+            console.log(`inside note detail GET, reading db for individual note`)
+            Object.keys(note).forEach(key => { console.log(`key = ${key}, value = ${note[key]}`) });
 
-    });
+            // return an error if there are no results
+            if (note[0] === null) {
+                return res.redirect('/notes?message=invalid');
+            }
+
+            console.log(`note[0].user_id = ${note[0].user_id}`)
+            console.log(`req.user.id = ${req.user.id}`)
+            // return an error if note doesn't belong to user
+            if (note[0].user_id !== req.user.id) {
+                return res.redirect('/notes?message=not_yours');
+            }
+
+            // note is valid and belongs to user, so render page
+            const pageContent = {
+                title: 'My Notes: ' + note[0].name,
+                note: note[0],
+                names: menuNames,
+                authenticated: req.isAuthenticated()
+            }
+            res.render('note_detail', pageContent);
+
+
+        }, function (err) {
+
+            if (err) return next(err);
+
+        });
 
 };
 
