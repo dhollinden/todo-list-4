@@ -9,7 +9,11 @@ const {read} = require('../modules/crudMondoDB');
 exports.index = function (req, res, next) {
 
     // retrieve notes where user_id matches logged in user (for Notes menu)
-    read(Note, {'user_id': req.user.id},'name', {name: 1} )
+    const data = 'note';
+    const criteria = {'user_id': req.user.id};
+    const selection = 'name';
+    const options = {name: 1};
+    read(data, criteria, selection, options)
         .then(function (names) {
 
             console.log(`inside notes home GET, reading db for Notes menu`)
@@ -36,9 +40,14 @@ exports.index = function (req, res, next) {
 // note detail GET (successful note updates redirect here)
 exports.note_detail_get = function(req, res, next) {
 
-    let menuNames = '';
+    let menuNames, data, criteria, selection, options;
+
     // retrieve notes where user_id matches logged in user (for Notes menu)
-    read(Note, {'user_id': req.user.id},'name', {name: 1} )
+    data = 'note';
+    criteria = {'user_id': req.user.id};
+    selection = 'name';
+    options = {name: 1};
+    read(data, criteria, selection, options)
         .then(function (names) {
 
             console.log(`inside note detail GET, reading db for Notes menu`)
@@ -53,7 +62,9 @@ exports.note_detail_get = function(req, res, next) {
         });
 
     // retrieve details for individual note specified in params
-    read(Note, {'_id': req.params.id})
+    data = 'note';
+    criteria = {'_id': req.params.id};
+    read(data, criteria)
         .then(function (note) {
 
             console.log(`inside note detail GET, reading db for individual note`)
@@ -93,9 +104,14 @@ exports.note_detail_get = function(req, res, next) {
 // individual note on POST (from notes menu)
 exports.note_detail_post = function (req, res, next) {
 
-    let menuNames = '';
+    let menuNames, data, criteria, selection, options;
+
     // retrieve notes where user_id matches logged in user (for Notes menu)
-    read(Note, {'user_id': req.user.id},'name', {name: 1} )
+    data = 'note';
+    criteria = {'user_id': req.user.id};
+    selection = 'name';
+    options = {name: 1};
+    read(data, criteria, selection, options)
         .then(function (names) {
 
             console.log(`inside note detail POST, reading db for Notes menu`)
@@ -110,7 +126,9 @@ exports.note_detail_post = function (req, res, next) {
         });
 
     // retrieve details for individual note specified in req.body
-    read(Note, {'_id': req.body.id})
+    data = 'note';
+    criteria = {'_id': req.body.id};
+    read(data, criteria)
         .then(function (note) {
 
             console.log(`inside note detail POST, reading db for individual note`)
@@ -143,49 +161,6 @@ exports.note_detail_post = function (req, res, next) {
             if (err) return next(err);
 
         });
-
-
-/*
-    async.parallel({
-
-        // retrieve note names for menu
-        names: function (callback) {
-            Note.find({'user_id': req.user.id})
-                .select('name')
-                .sort({name: 1})
-                .exec(callback);
-        },
-
-        // retrieve details for individual note
-        note: function (callback) {
-            Note.findById(req.body.id, callback);
-        }
-
-    }, function (err, results) {
-
-        if (err) return next(err);
-
-        // return an error if there are no results
-        if (results.note === null) {
-            return res.redirect('/notes?message=invalid');
-        }
-
-        // return an error if note doesn't belong to user
-        if (results.note.user_id !== req.user.id) {
-            return res.redirect('/notes?message=not_yours');
-        }
-
-        // note is valid and belongs to user, so render page
-        const pageContent = {
-            title: 'My Notes: ' + results.note.name,
-            note: results.note,
-            names: results.names,
-            authenticated: req.isAuthenticated()
-        }
-        res.render('note_detail', pageContent);
-
-    });
-*/
 
 };
 
