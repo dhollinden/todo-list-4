@@ -3,7 +3,7 @@ const async = require('async');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 
-const {read} = require('../modules/crudMondoDB');
+const {read, create} = require('../modules/crudMondoDB');
 
 // notes home GET
 exports.index = function (req, res, next) {
@@ -37,7 +37,7 @@ exports.index = function (req, res, next) {
 };
 
 
-// note detail POST (from menu) and GET (from note updates)
+// note detail POST (from menu) and GET (after successful note create and update)
 exports.note_detail = function(req, res, next) {
 
     let data, criteria, selection, options;
@@ -161,6 +161,7 @@ exports.note_create_post = [
                 'name': req.body.name,
                 'user_id': req.user.id
             };
+
             read(data, criteria)
                 .then(function (note_same_name) {
 
@@ -168,6 +169,7 @@ exports.note_create_post = [
 
                     console.log(`inside note_create_POST: note_same_name = ${note_same_name}`)
                     console.log(`inside note_create_POST: Object.getPrototypeOf(note_same_name) === Array.prototype = ${Object.getPrototypeOf(note_same_name) === Array.prototype}`)
+
                     if (note_same_name[0]) {
 
                         console.log(`inside note_create_POST: inside IF statement: note = ${note} `)
@@ -184,57 +186,24 @@ exports.note_create_post = [
 
                     else {
 
+                        console.log(`inside note_create_POST: inside ELSE statement: note = ${note} `)
+
                         // save note
-                        note.save(function(err) {
+                        create(note)
+                            .then(function(note) {
 
-                            if (err) { return next(err); }
+                                // save was successful, redirect to detail page for note
+                                res.redirect(note.url);
 
-                            // save was successful, redirect to detail page for note
-                            res.redirect(note.url);
-                        })
+                            })
 
                     }
-
 
                 }, function (err) {
 
                     if (err) return next(err);
 
                 });
-
-/*
-            Note.findOne({'name': req.body.name, 'user_id': req.user.id}).exec(function(err, note_same_name) {
-
-                if (err) return next(err);
-
-                if (note_same_name) {
-
-                    // note with same name exists, render again with error message
-                    const pageContent = {
-                        title: 'Create Note: Error',
-                        note: note,
-                        message: 'name_exists',
-                        authenticated: req.isAuthenticated()
-                    }
-                    res.render('note_form', pageContent);
-
-                }
-
-                else {
-
-                    // save note
-                    note.save(function(err) {
-
-                        if (err) { return next(err); }
-
-                        // save was successful, redirect to detail page for note
-                        res.redirect(note.url);
-                    })
-
-                }
-            })
-*/
-
 
         }
     }
