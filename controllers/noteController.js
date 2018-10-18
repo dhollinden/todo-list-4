@@ -213,6 +213,36 @@ exports.note_create_post = [
 // note update on GET
 exports.note_update_get = function (req, res, next) {
 
+    const data = 'note';
+    const criteria = {'_id': req.params.id};
+
+    read(data, criteria)
+        .then(function (note) {
+
+            console.log(`inside note update GET, reading db for note`)
+            Object.keys(note).forEach(key => { console.log(`key = ${key}, value = ${note[key]}`) });
+
+            // if note with this id is not found
+            if (note[0] === null) {
+                return res.redirect('/notes?message=invalid');
+            }
+
+            // success, so render page
+            const pageContent = {
+                title: 'Update Note: ' + note[0].name,
+                note: note[0],
+                authenticated: req.isAuthenticated()
+            }
+            res.render('note_form', pageContent);
+
+        }, function (err) {
+
+            if (err) return next(err);
+
+        });
+
+
+/*
     Note.findById(req.params.id).exec(function(err, note) {
 
         if (err) return next(err);
@@ -230,6 +260,7 @@ exports.note_update_get = function (req, res, next) {
         }
         res.render('note_form', pageContent);
     })
+*/
 
 }
 
