@@ -40,20 +40,54 @@ exports.index = function (req, res, next) {
 // note detail GET (successful note updates redirect here)
 exports.note_detail_get = function(req, res, next) {
 
-    let menuNames, data, criteria, selection, options;
+    let data, criteria, selection, options;
+
+    const noteId = req.params.id ? req.params.id : req.body.id;
 
     // retrieve notes where user_id matches logged in user (for Notes menu)
     data = 'note';
     criteria = {'user_id': req.user.id};
     selection = 'name';
     options = {name: 1};
+
     read(data, criteria, selection, options)
         .then(function (names) {
 
-            console.log(`inside note detail GET, reading db for Notes menu`)
+            console.log(`inside note detail POST, reading db for Notes menu`)
             Object.keys(names).forEach(key => { console.log(`key = ${key}, value = ${names[key]}`) });
 
-            menuNames = names;
+            // retrieve details for individual note specified in req.body
+            data = 'note';
+            criteria = {'_id': noteId};
+
+            read(data, criteria)
+                .then(function (note) {
+
+                    console.log(`inside note detail POST, reading db for individual note`)
+                    Object.keys(note).forEach(key => { console.log(`key = ${key}, value = ${note[key]}`) });
+
+                    // return an error if there are no results
+                    if (note[0] === null) {
+                        return res.redirect('/notes?message=invalid');
+                    }
+
+                    console.log(`note[0].user_id = ${note[0].user_id}`)
+                    console.log(`req.user.id = ${req.user.id}`)
+                    // return an error if note doesn't belong to user
+                    if (note[0].user_id !== req.user.id) {
+                        return res.redirect('/notes?message=not_yours');
+                    }
+
+                    // note is valid and belongs to user, so render page
+                    const pageContent = {
+                        title: 'My Notes: ' + note[0].name,
+                        note: note[0],
+                        names: names,
+                        authenticated: req.isAuthenticated()
+                    }
+                    res.render('note_detail', pageContent);
+
+                });
 
         }, function (err) {
 
@@ -61,42 +95,6 @@ exports.note_detail_get = function(req, res, next) {
 
         });
 
-    // retrieve details for individual note specified in params
-    data = 'note';
-    criteria = {'_id': req.params.id};
-    read(data, criteria)
-        .then(function (note) {
-
-            console.log(`inside note detail GET, reading db for individual note`)
-            Object.keys(note).forEach(key => { console.log(`key = ${key}, value = ${note[key]}`) });
-
-            // return an error if there are no results
-            if (note[0] === null) {
-                return res.redirect('/notes?message=invalid');
-            }
-
-            console.log(`note[0].user_id = ${note[0].user_id}`)
-            console.log(`req.user.id = ${req.user.id}`)
-            // return an error if note doesn't belong to user
-            if (note[0].user_id !== req.user.id) {
-                return res.redirect('/notes?message=not_yours');
-            }
-
-            // note is valid and belongs to user, so render page
-            const pageContent = {
-                title: 'My Notes: ' + note[0].name,
-                note: note[0],
-                names: menuNames,
-                authenticated: req.isAuthenticated()
-            }
-            res.render('note_detail', pageContent);
-
-
-        }, function (err) {
-
-            if (err) return next(err);
-
-        });
 
 };
 
@@ -104,31 +102,27 @@ exports.note_detail_get = function(req, res, next) {
 // individual note on POST (from notes menu)
 exports.note_detail_post = function (req, res, next) {
 
-    let menuNames, data, criteria, selection, options;
+    let data, criteria, selection, options;
+
+    const noteId = req.params.id ? req.params.id : req.body.id;
 
     // retrieve notes where user_id matches logged in user (for Notes menu)
     data = 'note';
     criteria = {'user_id': req.user.id};
     selection = 'name';
     options = {name: 1};
+
     read(data, criteria, selection, options)
-        .then(function (names) {
+    .then(function (names) {
 
-            console.log(`inside note detail POST, reading db for Notes menu`)
-            Object.keys(names).forEach(key => { console.log(`key = ${key}, value = ${names[key]}`) });
+        console.log(`inside note detail POST, reading db for Notes menu`)
+        Object.keys(names).forEach(key => { console.log(`key = ${key}, value = ${names[key]}`) });
 
-            menuNames = names;
+        // retrieve details for individual note specified in req.body
+        data = 'note';
+        criteria = {'_id': noteId};
 
-        }, function (err) {
-
-            if (err) return next(err);
-
-        });
-
-    // retrieve details for individual note specified in req.body
-    data = 'note';
-    criteria = {'_id': req.body.id};
-    read(data, criteria)
+        read(data, criteria)
         .then(function (note) {
 
             console.log(`inside note detail POST, reading db for individual note`)
@@ -150,17 +144,20 @@ exports.note_detail_post = function (req, res, next) {
             const pageContent = {
                 title: 'My Notes: ' + note[0].name,
                 note: note[0],
-                names: menuNames,
+                names: names,
                 authenticated: req.isAuthenticated()
             }
             res.render('note_detail', pageContent);
 
+            });
 
         }, function (err) {
 
             if (err) return next(err);
 
         });
+
+
 
 };
 
@@ -221,6 +218,54 @@ exports.note_create_post = [
         else {
 
             // check if note with same name already exists for this user
+
+            data = 'note';
+            criteria = {
+                'name': req.body.name,
+                'user_id': req.user.id
+            };
+            read(data, criteria)
+                .then(function (note_same_name) {
+
+                    // if note with same name exists, render again with error message
+
+                    console.log(`inside note_create_POST: note_same_name = ${note_same_name}`)
+                    console.log(`inside note_create_POST: Object.getPrototypeOf(note_same_name) === Array.prototype = ${Object.getPrototypeOf(note_same_name) === Array.prototype}`)
+                    if (note_same_name[0]) {
+
+                        console.log(`inside note_create_POST: inside IF statement: note = ${note} `)
+
+                        const pageContent = {
+                            title: 'Create Note: Error',
+                            note: note,
+                            message: 'name_exists',
+                            authenticated: req.isAuthenticated()
+                        }
+                        res.render('note_form', pageContent);
+
+                    }
+
+                    else {
+
+                        // save note
+                        note.save(function(err) {
+
+                            if (err) { return next(err); }
+
+                            // save was successful, redirect to detail page for note
+                            res.redirect(note.url);
+                        })
+
+                    }
+
+
+                }, function (err) {
+
+                    if (err) return next(err);
+
+                });
+
+/*
             Note.findOne({'name': req.body.name, 'user_id': req.user.id}).exec(function(err, note_same_name) {
 
                 if (err) return next(err);
@@ -251,6 +296,9 @@ exports.note_create_post = [
 
                 }
             })
+*/
+
+
         }
     }
 ];
