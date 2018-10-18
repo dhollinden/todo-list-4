@@ -37,73 +37,12 @@ exports.index = function (req, res, next) {
 };
 
 
-// note detail GET (successful note updates redirect here)
-exports.note_detail_get = function(req, res, next) {
+// note detail POST (from menu) and GET (from note updates)
+exports.note_detail = function(req, res, next) {
 
     let data, criteria, selection, options;
 
-    const noteId = req.params.id ? req.params.id : req.body.id;
-
-    // retrieve notes where user_id matches logged in user (for Notes menu)
-    data = 'note';
-    criteria = {'user_id': req.user.id};
-    selection = 'name';
-    options = {name: 1};
-
-    read(data, criteria, selection, options)
-        .then(function (names) {
-
-            console.log(`inside note detail POST, reading db for Notes menu`)
-            Object.keys(names).forEach(key => { console.log(`key = ${key}, value = ${names[key]}`) });
-
-            // retrieve details for individual note specified in req.body
-            data = 'note';
-            criteria = {'_id': noteId};
-
-            read(data, criteria)
-                .then(function (note) {
-
-                    console.log(`inside note detail POST, reading db for individual note`)
-                    Object.keys(note).forEach(key => { console.log(`key = ${key}, value = ${note[key]}`) });
-
-                    // return an error if there are no results
-                    if (note[0] === null) {
-                        return res.redirect('/notes?message=invalid');
-                    }
-
-                    console.log(`note[0].user_id = ${note[0].user_id}`)
-                    console.log(`req.user.id = ${req.user.id}`)
-                    // return an error if note doesn't belong to user
-                    if (note[0].user_id !== req.user.id) {
-                        return res.redirect('/notes?message=not_yours');
-                    }
-
-                    // note is valid and belongs to user, so render page
-                    const pageContent = {
-                        title: 'My Notes: ' + note[0].name,
-                        note: note[0],
-                        names: names,
-                        authenticated: req.isAuthenticated()
-                    }
-                    res.render('note_detail', pageContent);
-
-                });
-
-        }, function (err) {
-
-            if (err) return next(err);
-
-        });
-
-
-};
-
-
-// individual note on POST (from notes menu)
-exports.note_detail_post = function (req, res, next) {
-
-    let data, criteria, selection, options;
-
+    // POST: note ID is in body; GET: note ID is in params
     const noteId = req.params.id ? req.params.id : req.body.id;
 
     // retrieve notes where user_id matches logged in user (for Notes menu)
@@ -149,15 +88,13 @@ exports.note_detail_post = function (req, res, next) {
             }
             res.render('note_detail', pageContent);
 
-            });
-
-        }, function (err) {
-
-            if (err) return next(err);
-
         });
 
+    }, function (err) {
 
+        if (err) return next(err);
+
+    });
 
 };
 
