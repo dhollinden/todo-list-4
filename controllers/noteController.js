@@ -3,7 +3,7 @@ const async = require('async');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 
-const {read, create} = require('../modules/crudMondoDB');
+const {read, create, update} = require('../modules/crudMondoDB');
 
 // notes home GET
 exports.index = function (req, res, next) {
@@ -156,13 +156,13 @@ exports.note_create_post = [
 
             // check if note with same name already exists for this user
 
-            data = 'note';
-            criteria = {
+            const model = 'note';
+            const criteria = {
                 'name': req.body.name,
                 'user_id': req.user.id
             };
 
-            read(data, criteria)
+            read(model, criteria)
                 .then(function (note_same_name) {
 
                     // if note with same name exists, render again with error message
@@ -213,6 +213,7 @@ exports.note_create_post = [
 // note update on GET
 exports.note_update_get = function (req, res, next) {
 
+    // retrieve note based on ID in URL
     const data = 'note';
     const criteria = {'_id': req.params.id};
 
@@ -222,7 +223,7 @@ exports.note_update_get = function (req, res, next) {
             console.log(`inside note update GET, reading db for note`)
             Object.keys(note).forEach(key => { console.log(`key = ${key}, value = ${note[key]}`) });
 
-            // if note with this id is not found
+            // if note with this id is not found, redirect
             if (note[0] === null) {
                 return res.redirect('/notes?message=invalid');
             }
@@ -240,27 +241,6 @@ exports.note_update_get = function (req, res, next) {
             if (err) return next(err);
 
         });
-
-
-/*
-    Note.findById(req.params.id).exec(function(err, note) {
-
-        if (err) return next(err);
-
-        // if note with this id is not found
-        if (note === null) {
-            return res.redirect('/notes?message=invalid');
-        }
-
-        // success, so render page
-        const pageContent = {
-            title: 'Update Note: ' + note.name,
-            note: note,
-            authenticated: req.isAuthenticated()
-        }
-        res.render('note_form', pageContent);
-    })
-*/
 
 }
 
@@ -309,37 +289,61 @@ exports.note_update_post = [
         else {
 
             // check if note with same name already exists for this user
-            Note.findOne({'name': req.body.name, 'user_id': req.user.id}).exec(function(err, found_note) {
 
-                if (err) return next(err);
+            let model = 'note';
+            let criteria = {
+                'name': req.body.name,
+                'user_id': req.user.id
+            };
 
-                const found_id = found_note ? String(found_note._id) : null;
+            read(model, criteria)
+                .then(function (note_same_name) {
 
-                // is note with same name is found, check if its id differs from id of note being updated
-                if (found_note && note._id != found_id) {
+                    // if note with same name exists, render again with error message
 
-                    // another note with same name exists, render page with error message
-                    const pageContent = {
-                        title: 'Update Note: Error',
-                        note: note,
-                        message: 'name_exists',
-                        authenticated: req.isAuthenticated()
+                    console.log(`inside note_create_POST: note_same_name = ${note_same_name}`)
+                    console.log(`inside note_create_POST: Object.getPrototypeOf(note_same_name) === Array.prototype = ${Object.getPrototypeOf(note_same_name) === Array.prototype}`)
+
+                    const found_id = note_same_name[0] ? String(note_same_name[0]._id) : null;
+
+                    // check if note with same name exists, and if its ID differs from ID of note being updated
+                    if (note_same_name[0] && note._id != found_id) {
+
+                        // user has another note with same name, so render page with error message
+                        const pageContent = {
+                            title: 'Update Note: Error',
+                            note: note,
+                            message: 'name_exists',
+                            authenticated: req.isAuthenticated()
+                        }
+                        res.render('note_form', pageContent);
+
+                    } else {
+
+                        // update note
+                        model = 'note';
+                        criteria = {'_id': req.params.id};
+                        const changes = {
+                            name: note.name,
+                            body: note.body
+                        };
+
+                        update(model, criteria, changes)
+                            .then(function (updated_note) {
+
+                                // update was successful, redirect to detail page for updated note
+                                res.redirect(note.url);
+
+                            });
+
                     }
-                    res.render('note_form', pageContent);
 
-                } else {
+                }, function (err) {
 
-                    // update note
-                    Note.findByIdAndUpdate(req.params.id, note, {}, function (err, updated_note) {
+                    if (err) return next(err);
 
-                        if (err) { return next(err); }
+                });
 
-                        // update was successful, redirect to detail page for updated note
-                        res.redirect(updated_note.url);
-
-                    });
-                }
-            })
         }
     }
 
