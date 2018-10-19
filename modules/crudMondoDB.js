@@ -28,21 +28,34 @@ exports.create = function(document, options = null) {
 
     console.log(`inside create function: document = ${document}`);
 
-    return document.save();
+    return document.save();  // does this return a promise?
 
 };
 
 
 // update
 
-exports.update = function(model, criteria, update, options = null) {
+exports.update = function(model, criteria, updates, options = null) {
 
-    console.log(`inside update function: update = ${update}`);
+    console.log(`inside update function: updates = ${updates}`);
 
     let from = (model === 'note') ? Note : User;
 
     return from.where(criteria)
-        .update(update)
+        .update(updates)
+        .exec();
+
+};
+
+// delete
+
+exports.remove = function(model, criteria, options = null) {
+
+    console.log(`inside delete function: criteria = ${criteria}`);
+
+    let from = (model === 'note') ? Note : User;
+
+    return from.findOneAndDelete(criteria)
         .exec();
 
 };

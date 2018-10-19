@@ -3,7 +3,7 @@ const async = require('async');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 
-const {read, create, update} = require('../modules/crudMondoDB');
+const {read, create, update, remove} = require('../modules/crudMondoDB');
 
 // notes home GET
 exports.index = function (req, res, next) {
@@ -350,34 +350,82 @@ exports.note_update_post = [
 ];
 
 
-// note delete on GET
+// note delete GET
 exports.note_delete_get = function (req, res, next) {
 
-    Note.findById(req.params.id).exec(function(err, note) {
+    // retrieve note based on ID in URL
+    const data = 'note';
+    const criteria = {'_id': req.params.id};
 
-        if (err) return next(err);
+    read(data, criteria)
+        .then(function (note) {
 
-        // if note does not exist, redirect to notes home page
-        if (note === null) {
-            return res.redirect('/notes?message=invalid');
-        }
+            console.log(`inside note delete GET, reading db for note`)
+            Object.keys(note).forEach(key => { console.log(`key = ${key}, value = ${note[key]}`) });
 
-        // note exists, so render
-        const pageContent = {
-            title: 'Delete Note: ' + note.name,
-            note: note,
-            authenticated: req.isAuthenticated()
-        }
-        res.render('note_delete', pageContent);
+            // if note was not found, redirect
+            if (note[0] === null) {
+                return res.redirect('/notes?message=invalid');
+            }
 
-    })
+            // note was found, so render
+            const pageContent = {
+                title: 'Delete Note: ' + note[0].name,
+                note: note[0],
+                authenticated: req.isAuthenticated()
+            }
+            res.render('note_delete', pageContent);
+
+        }, function (err) {
+
+            if (err) return next(err);
+
+        });
 
 }
 
 
-// note delete on POST
+// note delete POST
 exports.note_delete_post = function (req, res, next) {
 
+    // check that note with req.body.id exists
+    // check that note.user_id = req.user.id
+    // then delete note
+
+    // retrieve note based on ID in req.body
+    const model = 'note';
+    const criteria = {'_id': req.body.id};
+
+    read(model, criteria)
+        .then(function (note) {
+
+            console.log(`inside note delete post, reading db for note`)
+            Object.keys(note).forEach(key => { console.log(`key = ${key}, value = ${note[key]}`) });
+
+            // if note was not found, redirect
+            if (note[0] === null) {
+                return res.redirect('/notes?message=invalid');
+            }
+
+            // if note doesn't belong to user, redirect
+            if (note[0].user_id !== req.user.id) {
+                return res.redirect('/notes?message=not_yours');
+            }
+
+            // delete note
+            remove(model, criteria)
+                .then(function(deleted_note) {
+
+                    res.redirect('/notes?message=note_deleted');
+                });
+
+        }, function (err) {
+
+            if (err) return next(err);
+
+        });
+
+/*
     // assume note id is valid
     Note.findByIdAndRemove(req.body.id, function (err) {
 
@@ -387,5 +435,6 @@ exports.note_delete_post = function (req, res, next) {
         res.redirect('/notes?message=note_deleted');
 
     });
+*/
 
 };
