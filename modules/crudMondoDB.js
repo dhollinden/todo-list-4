@@ -1,18 +1,22 @@
 const Note = require('../models/note_model');
 const User = require('../models/user_model');
 
+
+// ALL
+// model: data model (Note or User)
+// criteria: object with key/value pairs defining search criteria
+// options: space delimited string ('name -body') or object ({name: 1, body: -1} or {name: 'asc', body: 'desc'})
+
+// --------
+
+
 // read
-    // collection: data model (Note or User)
-    // criteria: object with key/value pairs defining search criteria
-    // selection: space delimited string ('name body') or object ({name: 1, body: 1})
-    // options: space delimited string ('name -body') or object ({name: 1, body: -1}, {name: 'asc', body: 'desc'})
-    // return: promise for an array of documents
+//   selection: space delimited string ('name body') or object ({name: 1, body: 1})
+//   return: promise for an array of documents
 
-exports.read = function(collection, criteria, selection = null, options = null) {
+exports.read = function(model, criteria, selection = null, options = null) {
 
-    console.log(`inside read function: criteria = ${criteria}`);
-
-    let from = (collection === 'note') ? Note : User;
+    let from = (model === 'note') ? Note : User;
 
     return from.find(criteria)
         .select(selection)
@@ -23,21 +27,22 @@ exports.read = function(collection, criteria, selection = null, options = null) 
 
 
 // create
+//   return: promise for document
 
-exports.create = function(document, options = null) {
+exports.create = function(model, criteria, options = null) {
 
-    console.log(`inside create function: document = ${document}`);
+    let from = (model === 'note') ? Note : User;
 
-    return document.save();  // does this return a promise?
+    return from.create(criteria)
 
 };
 
 
 // update
+//   updates: object ({name: 'some name', body: 'some body'})
+//   return: promise for raw update
 
 exports.update = function(model, criteria, updates, options = null) {
-
-    console.log(`inside update function: updates = ${updates}`);
 
     let from = (model === 'note') ? Note : User;
 
@@ -48,10 +53,9 @@ exports.update = function(model, criteria, updates, options = null) {
 };
 
 // delete
+//   return: promise
 
 exports.remove = function(model, criteria, options = null) {
-
-    console.log(`inside delete function: criteria = ${criteria}`);
 
     let from = (model === 'note') ? Note : User;
 
