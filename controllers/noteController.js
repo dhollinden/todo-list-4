@@ -26,7 +26,8 @@ exports.index = function (req, res, next) {
             }
             res.render('notes', pageContent);
 
-        }, function (err) {
+        })
+        .catch(function (err) {
 
             if (err) return next(err);
 
@@ -48,41 +49,42 @@ exports.note_detail = function(req, res, next) {
     const options = {name: 1};
 
     read(model, criteria, selection, options)
-    .then(function (names) {
+        .then(function (names) {
 
-        // retrieve details for individual note
-        criteria = {'_id': noteId};
+            // retrieve details for individual note
+            criteria = {'_id': noteId};
 
-        read(model, criteria)
-        .then(function (note) {
+            read(model, criteria)
+            .then(function (note) {
 
-            // if there are no results, redirect with error message
-            if (note[0] === null) {
-                return res.redirect('/notes?message=invalid');
-            }
+                // if there are no results, redirect with error message
+                if (note[0] === null) {
+                    return res.redirect('/notes?message=invalid');
+                }
 
-            // if note doesn't belong to user, redirect with error message
-            if (note[0].user_id !== req.user.id) {
-                return res.redirect('/notes?message=not_yours');
-            }
+                // if note doesn't belong to user, redirect with error message
+                if (note[0].user_id !== req.user.id) {
+                    return res.redirect('/notes?message=not_yours');
+                }
 
-            // note is valid and belongs to user, so render page
-            const pageContent = {
-                title: 'My Notes: ' + note[0].name,
-                note: note[0],
-                names: names,
-                authenticated: req.isAuthenticated()
-            }
+                // note is valid and belongs to user, so render page
+                const pageContent = {
+                    title: 'My Notes: ' + note[0].name,
+                    note: note[0],
+                    names: names,
+                    authenticated: req.isAuthenticated()
+                }
 
-            res.render('note_detail', pageContent);
+                res.render('note_detail', pageContent);
+
+            });
+
+        })
+        .catch(function (err) {
+
+            if (err) return next(err);
 
         });
-
-    }, function (err) {
-
-        if (err) return next(err);
-
-    });
 
 };
 
@@ -206,7 +208,7 @@ exports.note_update_get = function (req, res, next) {
         .then(function (note) {
 
             // if note with this id is not found, redirect
-            if (note[0] === null) {
+            if (note[0] === null || typeof note[0] === 'undefined') {
                 return res.redirect('/notes?message=invalid');
             }
 
@@ -219,7 +221,8 @@ exports.note_update_get = function (req, res, next) {
 
             res.render('note_form', pageContent);
 
-        }, function (err) {
+        })
+        .catch(function (err) {
 
             if (err) return next(err);
 
@@ -319,7 +322,8 @@ exports.note_update_post = [
 
                     }
 
-                }, function (err) {
+                })
+                .catch(function (err) {
 
                     if (err) return next(err);
 
@@ -342,7 +346,7 @@ exports.note_delete_get = function (req, res, next) {
         .then(function (note) {
 
             // if note was not found, the ID is invalid, so redirect
-            if (note[0] === null) {
+            if (note[0] === null || typeof note[0] === 'undefined') {
                 return res.redirect('/notes?message=invalid');
             }
 
@@ -355,7 +359,8 @@ exports.note_delete_get = function (req, res, next) {
 
             res.render('note_delete', pageContent);
 
-        }, function (err) {
+        })
+        .catch(function (err) {
 
             if (err) return next(err);
 
@@ -392,7 +397,8 @@ exports.note_delete_post = function (req, res, next) {
 
                 });
 
-        }, function (err) {
+        })
+        .catch(function (err) {
 
             if (err) return next(err);
 
