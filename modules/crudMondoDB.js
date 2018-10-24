@@ -1,6 +1,6 @@
 const Note = require('../models/note_model');
 const User = require('../models/user_model');
-
+const mongoose = require('mongoose');
 
 // ALL
 // model: data model (Note or User)
@@ -15,6 +15,17 @@ const User = require('../models/user_model');
 //   return: promise for an array of documents
 
 exports.read = function(model, criteria, selection = null, options = null) {
+
+
+    // if note _id is a criteria, and it's not a valid ObjectId, return an error
+    if ('_id' in criteria && !mongoose.Types.ObjectId.isValid(criteria._id)) {
+
+        return new Promise(function (resolve, reject) {
+
+            resolve([{'error': 'invalidId'}]);
+
+        });
+    };
 
     let from = (model === 'note') ? Note : User;
 

@@ -10,8 +10,10 @@ block content
         div You have successfully logged in.
     else if message === "note_deleted"
         div Your note was deleted.
-    else if message === 'invalid'
-        div Could not find note
+    else if message === 'improperId'
+        div Improper note ID
+    else if message === 'invalidId'
+        div There is no note with that ID
     else if message === 'not_yours'
         div You don't have a note with that ID
     else

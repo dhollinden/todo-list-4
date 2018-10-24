@@ -55,29 +55,34 @@ exports.note_detail = function(req, res, next) {
             criteria = {'_id': noteId};
 
             read(model, criteria)
-            .then(function (note) {
+                .then(function (note) {
 
-                // if there are no results, redirect with error message
-                if (note[0] === null) {
-                    return res.redirect('/notes?message=invalid');
-                }
+                    // if there are no results, redirect with error message
+                    if (note[0] === null || typeof note[0] === 'undefined') {
+                        return res.redirect('/notes?message=invalidId');
+                    }
 
-                // if note doesn't belong to user, redirect with error message
-                if (note[0].user_id !== req.user.id) {
-                    return res.redirect('/notes?message=not_yours');
-                }
+                    // if note ID is not formed properly, redirect with error message
+                    if (note[0].error === 'invalidId') {
+                        return res.redirect('/notes?message=improperId');
+                    }
 
-                // note is valid and belongs to user, so render page
-                const pageContent = {
-                    title: 'My Notes: ' + note[0].name,
-                    note: note[0],
-                    names: names,
-                    authenticated: req.isAuthenticated()
-                }
+                    // if note doesn't belong to user, redirect with error message
+                    if (note[0].user_id !== req.user.id) {
+                        return res.redirect('/notes?message=not_yours');
+                    }
 
-                res.render('note_detail', pageContent);
+                    // note is valid and belongs to user, so render page
+                    const pageContent = {
+                        title: 'My Notes: ' + note[0].name,
+                        note: note[0],
+                        names: names,
+                        authenticated: req.isAuthenticated()
+                    }
 
-            });
+                    res.render('note_detail', pageContent);
+
+                });
 
         })
         .catch(function (err) {
@@ -209,7 +214,17 @@ exports.note_update_get = function (req, res, next) {
 
             // if note with this id is not found, redirect
             if (note[0] === null || typeof note[0] === 'undefined') {
-                return res.redirect('/notes?message=invalid');
+                return res.redirect('/notes?message=invalidId');
+            }
+
+            // if note ID is not formed properly, redirect with error message
+            if (note[0].error === 'invalidId') {
+                return res.redirect('/notes?message=improperId');
+            }
+
+            // if note doesn't belong to user, redirect with error message
+            if (note[0].user_id !== req.user.id) {
+                return res.redirect('/notes?message=not_yours');
             }
 
             // success, so render page
@@ -250,7 +265,7 @@ exports.note_update_post = [
 
         // create a note object with sanitized data
         // ** use the id of the existing note being updated **
-        const note = new Note(
+        const sanitizedNote = new Note(
             {
                 name: req.body.name,
                 body: req.body.body,
@@ -264,7 +279,7 @@ exports.note_update_post = [
             // render again with error messages and sanitized note object with existing note id
             const pageContent = {
                 title: 'Update Note: Error',
-                note: note,
+                note: sanitizedNote,
                 errors: errors.array(),
                 authenticated: req.isAuthenticated()
             }
@@ -286,16 +301,16 @@ exports.note_update_post = [
             read(model, criteria)
                 .then(function (note_same_name) {
 
-                    // if note note with same name exists, convert it to string for comparison
+                    // if note note with same name exists, convert it's ID to string for comparison
                     const found_id = note_same_name[0] ? String(note_same_name[0]._id) : null;
 
                     // check if note with same name exists, and if it's not the same note that's being updated
-                    if (note_same_name[0] && note._id != found_id) {
+                    if (note_same_name[0] && sanitizedNote._id != found_id) {
 
                         // user has another note with same name, so render page with error message
                         const pageContent = {
                             title: 'Update Note: Error',
-                            note: note,
+                            note: sanitizedNote,
                             message: 'name_exists',
                             authenticated: req.isAuthenticated()
                         }
@@ -304,21 +319,58 @@ exports.note_update_post = [
 
                     } else {
 
-                        // update note
-                        criteria = {'_id': req.params.id};
+                        // note name is unique, so proceed
+
+                        // read note based on ID in req.params and test whether it's valid to update it
+                        const model = 'note';
+                        const criteria = {'_id': req.params.id};
                         const changes = {
-                            name: note.name,
-                            body: note.body
+                            name: sanitizedNote.name,
+                            body: sanitizedNote.body
                         };
 
-                        update(model, criteria, changes)
-                            .then(function (updated_note) {
+                        read(model, criteria)
+                            .then(function (note) {
 
-                                // update was successful, redirect to detail page
-                                // "update" does not return a document, so redirect to note.url
-                                res.redirect(note.url);
+                                console.log(`inside note_update_post: inside read.then`)
 
-                            });
+                                // if note was not found, the ID is invalid, so redirect
+                                if (note[0] === null) {
+                                    return res.redirect('/notes?message=invalidId');
+                                }
+
+                                // if note ID is not formed properly, redirect with error message
+                                if (note[0].error === 'invalidId') {
+                                    return res.redirect('/notes?message=improperId');
+                                }
+
+                                // if note doesn't belong to user, redirect
+                                if (note[0].user_id !== req.user.id) {
+                                    return res.redirect('/notes?message=not_yours');
+                                }
+
+                                // all checks are valid, so update note
+
+                                console.log(`inside note_update_post: inside read.then, after all if statements`)
+
+                                update(model, criteria, changes)
+                                    .then(function (updated_note) {
+
+                                        // update was successful
+                                        // since "update" function does not return a document, redirect to note.url
+
+                                        console.log(`inside note_update_post: inside read.then, inside update.then, note.url = ${note.url}`)
+
+                                        res.redirect(sanitizedNote.url);
+
+                                    });
+
+                            })
+
+
+
+
+
 
                     }
 
@@ -347,7 +399,17 @@ exports.note_delete_get = function (req, res, next) {
 
             // if note was not found, the ID is invalid, so redirect
             if (note[0] === null || typeof note[0] === 'undefined') {
-                return res.redirect('/notes?message=invalid');
+                return res.redirect('/notes?message=invalidId');
+            }
+
+            // if note ID is not formed properly, redirect with error message
+            if (note[0].error === 'invalidId') {
+                return res.redirect('/notes?message=improperId');
+            }
+
+            // if note doesn't belong to user, redirect with error message
+            if (note[0].user_id !== req.user.id) {
+                return res.redirect('/notes?message=not_yours');
             }
 
             // note was found, so render
@@ -372,7 +434,7 @@ exports.note_delete_get = function (req, res, next) {
 // note delete POST
 exports.note_delete_post = function (req, res, next) {
 
-    // retrieve note based on ID in req.body
+    // retrieve note based on ID in req.body and confirm that it's valid to delete it
     const model = 'note';
     const criteria = {'_id': req.body.id};
 
@@ -381,7 +443,12 @@ exports.note_delete_post = function (req, res, next) {
 
             // if note was not found, the ID is invalid, so redirect
             if (note[0] === null) {
-                return res.redirect('/notes?message=invalid');
+                return res.redirect('/notes?message=invalidId');
+            }
+
+            // if note ID is not formed properly, redirect with error message
+            if (note[0].error === 'invalidId') {
+                return res.redirect('/notes?message=improperId');
             }
 
             // if note doesn't belong to user, redirect
