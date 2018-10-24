@@ -52,18 +52,17 @@ exports.note_detail = function(req, res, next) {
         .then(function (notes) {
 
             // look for the selected note among the user's notes
-            const selectedNote = notes.filter(note => String(note._id) === noteId)
+            const selectedNote = notes.filter(note => String(note._id) === noteId)[0]
 
             // if no note is found, redirect with error message
-            // possibilities: ID is not valid ObjectId, user does not have note with that ID
-            if (selectedNote[0] === null || typeof selectedNote[0] === 'undefined') {
+            if (selectedNote === null || typeof selectedNote === 'undefined') {
                 return res.redirect('/notes?message=invalidId');
             }
 
             // found note, so render page
             const pageContent = {
-                title: 'My Notes: ' + selectedNote[0].name,
-                selectedNote: selectedNote[0],
+                title: 'My Notes: ' + selectedNote.name,
+                selectedNote: selectedNote,
                 notes: notes,
                 authenticated: req.isAuthenticated()
             }
