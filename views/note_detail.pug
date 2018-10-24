@@ -13,24 +13,26 @@ block content
         form(method='POST' action='/notes/')
             div.form-group
                 select#id.form-control(type='select' placeholder='Select note list' name='id' required='true' )
-                    for name in names
-                        if name._id==note._id.toString()
-                            option(value=name._id selected) #{name.name}
+
+                    for note in notes
+                        if note._id == selectedNote._id.toString()
+                            option(value=note._id selected) #{note.name}
                         else
-                            option(value=name._id) #{name.name}
+                            option(value=note._id) #{note.name}
+
             button.btn.btn-primary(type='submit') Submit
 
     br
 
-    h4= note.name
+    h4= selectedNote.name
 
-    p= note.body
+    p= selectedNote.body
 
     br
 
     hr
 
     p
-        a(href=note.url + '/delete') Delete this note
+        a(href=selectedNote.url + '/delete') Delete this note
     p
-        a(href=note.url + '/update') Update this note
+        a(href=selectedNote.url + '/update') Update this note

@@ -39,50 +39,36 @@ exports.index = function (req, res, next) {
 // note detail POST (from Notes menu) and GET (after successful note create and update)
 exports.note_detail = function(req, res, next) {
 
-    // get the note ID from req.body or req.params
+    // get note ID from req.body or req.params
     const noteId = req.params.id ? req.params.id : req.body.id;
 
-    // retrieve note names for logged in user (for Notes menu)
+    // retrieve all notes for logged in user
     const model = 'note';
-    let criteria = {'user_id': req.user.id};
-    const selection = 'name';
+    const criteria = {'user_id': req.user.id};
+    const selection = '';
     const options = {name: 1};
 
     read(model, criteria, selection, options)
-        .then(function (names) {
+        .then(function (notes) {
 
-            // retrieve details for individual note
-            criteria = {'_id': noteId};
+            // look for the selected note among the user's notes
+            const selectedNote = notes.filter(note => String(note._id) === noteId)
 
-            read(model, criteria)
-                .then(function (note) {
+            // if no note is found, redirect with error message
+            // possibilities: ID is not valid ObjectId, user does not have note with that ID
+            if (selectedNote[0] === null || typeof selectedNote[0] === 'undefined') {
+                return res.redirect('/notes?message=invalidId');
+            }
 
-                    // if there are no results, redirect with error message
-                    if (note[0] === null || typeof note[0] === 'undefined') {
-                        return res.redirect('/notes?message=invalidId');
-                    }
+            // found note, so render page
+            const pageContent = {
+                title: 'My Notes: ' + selectedNote[0].name,
+                selectedNote: selectedNote[0],
+                notes: notes,
+                authenticated: req.isAuthenticated()
+            }
 
-                    // if note ID is not formed properly, redirect with error message
-                    if (note[0].error === 'invalidId') {
-                        return res.redirect('/notes?message=improperId');
-                    }
-
-                    // if note doesn't belong to user, redirect with error message
-                    if (note[0].user_id !== req.user.id) {
-                        return res.redirect('/notes?message=not_yours');
-                    }
-
-                    // note is valid and belongs to user, so render page
-                    const pageContent = {
-                        title: 'My Notes: ' + note[0].name,
-                        note: note[0],
-                        names: names,
-                        authenticated: req.isAuthenticated()
-                    }
-
-                    res.render('note_detail', pageContent);
-
-                });
+            res.render('note_detail', pageContent);
 
         })
         .catch(function (err) {
