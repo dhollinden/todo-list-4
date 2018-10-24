@@ -21,15 +21,15 @@ block content
 
     br
 
-    if names != ""
+    if notes != ""
 
         p Select a note from the menu
 
         form(method='POST' action='/notes/')
             div.form-group
                 select#id.form-control(type='select' placeholder='Select note list' name='id' required='true' )
-                    for name in names
-                        option(value=name._id) #{name.name}
+                    for note in notes
+                        option(value=note._id) #{note.name}
             button.btn.btn-primary(type='submit') Submit
 
     else

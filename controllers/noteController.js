@@ -11,16 +11,16 @@ exports.index = function (req, res, next) {
     // retrieve note names for logged in user (for Notes menu)
     const model = 'note';
     const criteria = {'user_id': req.user.id};
-    const selection = 'name';
+    const selection = '';
     const options = {name: 1};
 
     read(model, criteria, selection, options)
-        .then(function (names) {
+        .then(function (notes) {
 
             // render page
             const pageContent = {
                 title: 'My Notes',
-                names: names,
+                notes: notes,
                 message: req.query.message,
                 authenticated: req.isAuthenticated()
             }
