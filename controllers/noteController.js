@@ -39,10 +39,10 @@ exports.index = function (req, res, next) {
 // note detail POST (from Notes menu) and GET (after successful note create and update)
 exports.note_detail = function(req, res, next) {
 
-    // get note ID from req.body or req.params
+    // get ID  of selected note from req.body or req.params
     const noteId = req.params.id ? req.params.id : req.body.id;
 
-    // retrieve all notes for logged in user
+    // read all notes for logged in user
     const model = 'note';
     const criteria = {'user_id': req.user.id};
     const selection = '';
@@ -54,12 +54,12 @@ exports.note_detail = function(req, res, next) {
             // look for the selected note among the user's notes
             const selectedNote = notes.filter(note => String(note._id) === noteId)[0]
 
-            // if no note is found, redirect with error message
+            // if selected note is not found, redirect with error message
             if (selectedNote === null || typeof selectedNote === 'undefined') {
                 return res.redirect('/notes?message=invalidId');
             }
 
-            // found note, so render page
+            // selected note was found, so render page
             const pageContent = {
                 title: 'My Notes: ' + selectedNote.name,
                 selectedNote: selectedNote,
