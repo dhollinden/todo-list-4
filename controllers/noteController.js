@@ -1,5 +1,4 @@
 const Note = require('../models/note_model');
-const async = require('async');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 const {read, create, update, remove} = require('../modules/crudMondoDB');
@@ -190,32 +189,30 @@ exports.note_create_post = [
 // note update on GET
 exports.note_update_get = function (req, res, next) {
 
-    // retrieve note based on ID in URL
-    const data = 'note';
-    const criteria = {'_id': req.params.id};
+    // get ID  of selected note from req.params
+    const noteId = req.params.id;
 
-    read(data, criteria)
-        .then(function (note) {
+    // read all notes for logged in user
+    const model = 'note';
+    const criteria = {'user_id': req.user.id};
+    const selection = '';
+    const options = {name: 1};
 
-            // if note with this id is not found, redirect
-            if (note[0] === null || typeof note[0] === 'undefined') {
+    read(model, criteria, selection, options)
+        .then(function (notes) {
+
+            // look for the selected note among the user's notes
+            const selectedNote = notes.filter(note => String(note._id) === noteId)[0]
+
+            // if selected note is not found, redirect with error message
+            if (selectedNote === null || typeof selectedNote === 'undefined') {
                 return res.redirect('/notes?message=invalidId');
             }
 
-            // if note ID is not formed properly, redirect with error message
-            if (note[0].error === 'invalidId') {
-                return res.redirect('/notes?message=improperId');
-            }
-
-            // if note doesn't belong to user, redirect with error message
-            if (note[0].user_id !== req.user.id) {
-                return res.redirect('/notes?message=not_yours');
-            }
-
-            // success, so render page
+            // selected note was found, so render page
             const pageContent = {
-                title: 'Update Note: ' + note[0].name,
-                note: note[0],
+                title: 'Update Note: ' + selectedNote.name,
+                selectedNote: selectedNote,
                 authenticated: req.isAuthenticated()
             }
 

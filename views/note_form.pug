@@ -17,10 +17,10 @@ block content
     form(method='POST' action='')
         div.form-group
             label(for='name') Name:
-            input#name.form-control(type='text', placeholder='name for new note', name='name', value=(undefined===note ? '' : note.name))
+            input#name.form-control(type='text', placeholder='name for new note', name='name', value=(undefined===selectedNote ? '' : selectedNote.name))
         div.form-group
             label(for'body') Notes:
-            input#body.form-control(type='textarea', placeholder='notes', name='body', value=(undefined===note ? '' : note.body))
+            input#body.form-control(type='textarea', placeholder='notes', name='body', value=(undefined===selectedNote ? '' : selectedNote.body))
         button.btn.btn-primary(type='submit') Submit
 
     br
