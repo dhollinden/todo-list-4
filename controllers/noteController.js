@@ -292,7 +292,7 @@ exports.note_update_post = [
                         // user has another note with same name, so render page with error message
                         const pageContent = {
                             title: 'Update Note: Error',
-                            note: sanitizedNote,
+                            selectedNote: sanitizedNote,
                             message: 'name_exists',
                             authenticated: req.isAuthenticated()
                         }
@@ -303,56 +303,47 @@ exports.note_update_post = [
 
                         // note name is unique, so proceed
 
-                        // read note based on ID in req.params and test whether it's valid to update it
+                        // get ID  of selected note from req.params
+                        const selectedNoteId = req.params.id;
+
+                        // read all notes for logged in user
                         const model = 'note';
-                        const criteria = {'_id': req.params.id};
-                        const changes = {
-                            name: sanitizedNote.name,
-                            body: sanitizedNote.body
-                        };
+                        const criteria = {'user_id': req.user.id};
+                        const selection = '';
+                        const options = {name: 1};
 
-                        read(model, criteria)
-                            .then(function (note) {
+                        read(model, criteria, selection, options)
+                            .then(function (notes) {
 
-                                console.log(`inside note_update_post: inside read.then`)
+                                // look for the selected note among the user's notes
+                                const selectedNote = notes.filter(note => String(note._id) === selectedNoteId)[0]
 
-                                // if note was not found, the ID is invalid, so redirect
-                                if (note[0] === null) {
+                                // if selected note is not found, redirect with error message
+                                if (selectedNote === null || typeof selectedNote === 'undefined') {
                                     return res.redirect('/notes?message=invalidId');
                                 }
 
-                                // if note ID is not formed properly, redirect with error message
-                                if (note[0].error === 'invalidId') {
-                                    return res.redirect('/notes?message=improperId');
-                                }
+                                // all checks are valid, so update note with sanitized values
 
-                                // if note doesn't belong to user, redirect
-                                if (note[0].user_id !== req.user.id) {
-                                    return res.redirect('/notes?message=not_yours');
-                                }
-
-                                // all checks are valid, so update note
-
-                                console.log(`inside note_update_post: inside read.then, after all if statements`)
+                                const changes = {
+                                    name: sanitizedNote.name,
+                                    body: sanitizedNote.body
+                                };
 
                                 update(model, criteria, changes)
                                     .then(function (updated_note) {
 
-                                        // update was successful
-                                        // since "update" function does not return a document, redirect to note.url
-
-                                        console.log(`inside note_update_post: inside read.then, inside update.then, note.url = ${note.url}`)
+                                        // update was successful, redirect to sanitizedNote.url (update does not return a document)
 
                                         res.redirect(sanitizedNote.url);
 
                                     });
-
                             })
+                            .catch(function (err) {
 
+                                if (err) return next(err);
 
-
-
-
+                            });
 
                     }
 
