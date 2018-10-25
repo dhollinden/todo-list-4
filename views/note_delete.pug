@@ -8,9 +8,9 @@ block content
     br
     br
 
-    h4= note.name
+    h4= selectedNote.name
 
-    p= note.body
+    p= selectedNote.body
 
     br
 
@@ -18,7 +18,7 @@ block content
 
     form(method='POST' action='')
         div.form-group
-            input#id.form-control(type='hidden', name='id', required='true', value=note._id)
+            input#id.form-control(type='hidden', name='id', required='true', value=selectedNote._id)
 
         button.btn.btn-primary(type='submit') Delete
 
