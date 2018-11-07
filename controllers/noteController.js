@@ -2,19 +2,14 @@ const Note = require('../models/note_model');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 const {read, create, update, remove} = require('../modules/crudMondoDB');
+const { getUsersNotes } = require('../modules/note_functions');
 
 
 // notes home GET
 exports.index = function (req, res, next) {
 
-    // retrieve note names for logged in user (for Notes menu)
-    const model = 'note';
-    const criteria = {'user_id': req.user.id};
-    const selection = '';
-    const options = {name: 1};
-
-    read(model, criteria, selection, options)
-        .then(function (notes) {
+    getUsersNotes(req.user.id)
+        .then(function(notes) {
 
             // render page
             const pageContent = {
@@ -24,7 +19,6 @@ exports.index = function (req, res, next) {
                 authenticated: req.isAuthenticated()
             }
             res.render('notes', pageContent);
-
         })
         .catch(function (err) {
 
