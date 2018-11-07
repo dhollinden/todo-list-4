@@ -410,29 +410,32 @@ exports.note_delete_get = function (req, res, next) {
 // note delete POST
 exports.note_delete_post = function (req, res, next) {
 
-    // retrieve note based on ID in req.body and confirm that it's valid to delete it
+    // get ID  of selected note from req.body
+    const selectedNoteId = req.body.id
+
+    // read all notes for logged in user
     const model = 'note';
-    const criteria = {'_id': req.body.id};
+    const criteria = {'user_id': req.user.id};
+    const selection = '';
+    const options = {name: 1};
 
-    read(model, criteria)
-        .then(function (note) {
+    read(model, criteria, selection, options)
+        .then(function (notes) {
 
-            // if note was not found, the ID is invalid, so redirect
-            if (note[0] === null) {
+            // look for the selected note among the user's notes
+            const selectedNote = notes.filter(note => String(note._id) === selectedNoteId)[0]
+
+            // if selected note is not found, redirect with error message
+            if (selectedNote === null || typeof selectedNote === 'undefined') {
                 return res.redirect('/notes?message=invalidId');
             }
 
-            // if note ID is not formed properly, redirect with error message
-            if (note[0].error === 'invalidId') {
-                return res.redirect('/notes?message=improperId');
-            }
+            // selected note was found, so delete it
+            const criteria = {
+                '_id': selectedNoteId,
+                'user_id': req.user.id
+            };
 
-            // if note doesn't belong to user, redirect
-            if (note[0].user_id !== req.user.id) {
-                return res.redirect('/notes?message=not_yours');
-            }
-
-            // delete note
             remove(model, criteria)
                 .then(function(deleted_note) {
 
