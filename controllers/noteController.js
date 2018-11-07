@@ -2,14 +2,14 @@ const Note = require('../models/note_model');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 const {read, create, update, remove} = require('../modules/crudMondoDB');
-const { getUsersNotes } = require('../modules/note_functions');
+const { getUsersNotes, selectedNoteExists, findNoteById } = require('../modules/note_functions');
 
 
 // notes home GET
 exports.index = function (req, res, next) {
 
     getUsersNotes(req.user.id)
-        .then(function(notes) {
+        .then(notes => {
 
             // render page
             const pageContent = {
@@ -20,7 +20,7 @@ exports.index = function (req, res, next) {
             }
             res.render('notes', pageContent);
         })
-        .catch(function (err) {
+        .catch(err => {
 
             if (err) return next(err);
 
@@ -29,38 +29,31 @@ exports.index = function (req, res, next) {
 };
 
 
-// note detail POST (from Notes menu)
-// note detail GET (after successful note create and update)
+// note detail
+// POST (choose note from Notes menu)
+// GET (redirect here after successfully creating or updating a note)
 exports.note_detail = function(req, res, next) {
 
-    // get ID  of selected note from req.body or req.params
-    const selectedNoteId = req.params.id ? req.params.id : req.body.id;
+    // get ID  of requested note
+    const requestedNoteId = req.params.id ? req.params.id : req.body.id;
 
-    // read all notes for logged in user
-    const model = 'note';
-    const criteria = {'user_id': req.user.id};
-    const selection = '';
-    const options = {name: 1};
-
-    read(model, criteria, selection, options)
+    getUsersNotes(req.user.id)
         .then(function (notes) {
 
-            // look for the selected note among the user's notes
-            const selectedNote = notes.filter(note => String(note._id) === selectedNoteId)[0]
+            const requestedNote = findNoteById(notes, requestedNoteId);
 
-            // if selected note is not found, redirect with error message
-            if (selectedNote === null || typeof selectedNote === 'undefined') {
+            // if requestedNote wasn't found, redirect
+            if (!requestedNote) {
                 return res.redirect('/notes?message=invalidId');
             }
 
-            // selected note was found, so render page
+            // render page
             const pageContent = {
-                title: 'My Notes: ' + selectedNote.name,
-                selectedNote: selectedNote,
+                title: 'My Notes: ' + requestedNote.name,
+                selectedNote: requestedNote,
                 notes: notes,
                 authenticated: req.isAuthenticated()
             }
-
             res.render('note_detail', pageContent);
 
         })
