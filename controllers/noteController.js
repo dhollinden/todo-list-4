@@ -35,7 +35,8 @@ exports.index = function (req, res, next) {
 };
 
 
-// note detail POST (from Notes menu) and GET (after successful note create and update)
+// note detail POST (from Notes menu)
+// note detail GET (after successful note create and update)
 exports.note_detail = function(req, res, next) {
 
     // get ID  of selected note from req.body or req.params
@@ -134,7 +135,7 @@ exports.note_create_post = [
 
         else {
 
-            // check if note with same name already exists for this user
+            // query for note with same name for this user
 
             const model = 'note';
             const criteria = {
@@ -145,9 +146,9 @@ exports.note_create_post = [
             read(model, criteria)
                 .then(function (note_same_name) {
 
-                    // if note with same name exists, render again with error message
-
                     if (note_same_name[0]) {
+
+                        // note with same name exists, render again with error message
 
                         const pageContent = {
                             title: 'Create Note: Error',
@@ -162,7 +163,7 @@ exports.note_create_post = [
 
                     else {
 
-                        // save note
+                        // note name is unique, so save note
 
                         create(model, note)
                             .then(function(note) {
@@ -283,7 +284,7 @@ exports.note_update_post = [
             read(model, criteria)
                 .then(function (note_same_name) {
 
-                    // if note note with same name exists, convert it's ID to string for comparison
+                    // if note with same name exists, convert it's ID to string for comparison
                     const found_id = note_same_name[0] ? String(note_same_name[0]._id) : null;
 
                     // check if note with same name exists, and if it's not the same note that's being updated
