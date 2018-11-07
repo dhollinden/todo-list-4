@@ -329,6 +329,10 @@ exports.note_update_post = [
                                     name: sanitizedNote.name,
                                     body: sanitizedNote.body
                                 };
+                                const criteria = {
+                                    '_id': selectedNoteId,
+                                    'user_id': req.user.id
+                                };
 
                                 update(model, criteria, changes)
                                     .then(function (updated_note) {

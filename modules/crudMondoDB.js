@@ -16,17 +16,6 @@ const mongoose = require('mongoose');
 
 exports.read = function(model, criteria, selection = null, options = null) {
 
-
-    // if note _id is a criteria, and it's not a valid ObjectId, return an error
-    if ('_id' in criteria && !mongoose.Types.ObjectId.isValid(criteria._id)) {
-
-        return new Promise(function (resolve, reject) {
-
-            resolve([{'error': 'invalidId'}]);
-
-        });
-    };
-
     let from = (model === 'note') ? Note : User;
 
     return from.find(criteria)
@@ -50,6 +39,7 @@ exports.create = function(model, criteria, options = null) {
 
 
 // update
+// Updates one document in the database without returning it.
 //   updates: object ({name: 'some name', body: 'some body'})
 //   return: promise for raw update
 
