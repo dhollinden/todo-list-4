@@ -33,7 +33,18 @@ exports.findNoteById = function (notes, note_id) {
     // look for a note with _id = note_id among the supplied notes
     const foundNote = notes.filter(note => String(note._id) === note_id)[0]
 
-    // if a note is not found, return null
+    // return the note, or null if a note is not found
+    return (foundNote === null || typeof foundNote === 'undefined') ? null : foundNote;
+
+}
+
+
+exports.findAnotherNoteWithSameName = (notes, note_id, newName) => {
+
+    // look for a note with a different _id and name = newName among the supplied notes
+    const foundNote = notes.filter(note => String(note._id) !== note_id && note.name === newName)[0]
+
+    // return the note, or null if a note is not found
     return (foundNote === null || typeof foundNote === 'undefined') ? null : foundNote;
 
 }

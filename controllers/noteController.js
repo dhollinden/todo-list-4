@@ -2,7 +2,7 @@ const Note = require('../models/note_model');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 const {read, create, update, remove} = require('../modules/crudMondoDB');
-const { getUsersNotes, selectedNoteExists, findNoteById } = require('../modules/note_functions');
+const { getUsersNotes, selectedNoteExists, findNoteById, findAnotherNoteWithSameName } = require('../modules/note_functions');
 
 
 // notes home GET
@@ -253,84 +253,48 @@ exports.note_update_post = [
 
         else {
 
-            // check if note with same name already exists for this user
+            // get ID  of requested note
+            const requestedNoteId = req.params.id;
 
-            const model = 'note';
-            let criteria = {
-                'name': req.body.name,
-                'user_id': req.user.id
-            };
+            getUsersNotes(req.user.id)
+                .then(function (notes) {
 
-            read(model, criteria)
-                .then(function (note_same_name) {
+                    // if requestedNote wasn't found, redirect
+                    const requestedNote = findNoteById(notes, requestedNoteId);
+                    if (!requestedNote) {
+                        return res.redirect('/notes?message=invalidId');
+                    }
 
-                    // if note with same name exists, convert it's ID to string for comparison
-                    const found_id = note_same_name[0] ? String(note_same_name[0]._id) : null;
-
-                    // check if note with same name exists, and if it's not the same note that's being updated
-                    if (note_same_name[0] && sanitizedNote._id != found_id) {
-
-                        // user has another note with same name, so render page with error message
+                    // if user has another note with same name, render again with error message and sanitized values
+                    const anotherNoteWithSameName = findAnotherNoteWithSameName(notes, requestedNoteId, req.body.name);
+                    if (anotherNoteWithSameName) {
                         const pageContent = {
                             title: 'Update Note: Error',
                             selectedNote: sanitizedNote,
                             message: 'name_exists',
                             authenticated: req.isAuthenticated()
                         }
-
-                        res.render('note_form', pageContent);
-
-                    } else {
-
-                        // note name is unique, so proceed
-
-                        // get ID  of selected note from req.params
-                        const selectedNoteId = req.params.id;
-
-                        // read all notes for logged in user
-                        const model = 'note';
-                        const criteria = {'user_id': req.user.id};
-                        const selection = '';
-                        const options = {name: 1};
-
-                        read(model, criteria, selection, options)
-                            .then(function (notes) {
-
-                                // look for the selected note among the user's notes
-                                const selectedNote = notes.filter(note => String(note._id) === selectedNoteId)[0]
-
-                                // if selected note is not found, redirect with error message
-                                if (selectedNote === null || typeof selectedNote === 'undefined') {
-                                    return res.redirect('/notes?message=invalidId');
-                                }
-
-                                // all checks are valid, so update note with sanitized values
-
-                                const changes = {
-                                    name: sanitizedNote.name,
-                                    body: sanitizedNote.body
-                                };
-                                const criteria = {
-                                    '_id': selectedNoteId,
-                                    'user_id': req.user.id
-                                };
-
-                                update(model, criteria, changes)
-                                    .then(function (updated_note) {
-
-                                        // update was successful, redirect to sanitizedNote.url (update does not return a document)
-
-                                        res.redirect(sanitizedNote.url);
-
-                                    });
-                            })
-                            .catch(function (err) {
-
-                                if (err) return next(err);
-
-                            });
-
+                        return res.render('note_form', pageContent);
                     }
+
+                    // update note with sanitized values
+                    const model = 'note';
+                    const criteria = {
+                        '_id': requestedNoteId,
+                        'user_id': req.user.id
+                    };
+                    const changes = {
+                        name: sanitizedNote.name,
+                        body: sanitizedNote.body
+                    };
+
+                    update(model, criteria, changes)
+                        .then(function (updated_note) {
+
+                            // redirect to sanitizedNote.url because update does not return a document
+                            res.redirect(sanitizedNote.url);
+
+                        });
 
                 })
                 .catch(function (err) {
