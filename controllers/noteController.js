@@ -1,14 +1,14 @@
 const Note = require('../models/note_model');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
-const {read, create, update, remove} = require('../modules/crudMondoDB');
-const { getUsersNotes, findNoteById, findAnotherNoteWithSameName } = require('../modules/note_functions');
+const { read, create, update, remove } = require('../modules/crudMondoDB');
+const { getAllNotesForUser, findNoteById, findAnotherNoteWithSameName } = require('../modules/note_functions');
 
 
 // notes home GET
 exports.index = function (req, res, next) {
 
-    getUsersNotes(req.user.id)
+    getAllNotesForUser(req.user.id)
         .then(notes => {
 
             // render page
@@ -35,7 +35,7 @@ exports.note_detail = function(req, res, next) {
     // get ID  of requested note
     const requestedNoteId = req.params.id ? req.params.id : req.body.id;
 
-    getUsersNotes(req.user.id)
+    getAllNotesForUser(req.user.id)
         .then(function (notes) {
 
             // if requestedNote wasn't found, redirect
@@ -119,7 +119,7 @@ exports.note_create_post = [
 
         else {
 
-            getUsersNotes(req.user.id)
+            getAllNotesForUser(req.user.id)
                 .then(function (notes) {
 
                     // if user has another note with same name, render again with error message and sanitized values
@@ -165,7 +165,7 @@ exports.note_update_get = function (req, res, next) {
     // get ID  of requested note
     const requestedNoteId = req.params.id;
 
-    getUsersNotes(req.user.id)
+    getAllNotesForUser(req.user.id)
         .then(function (notes) {
 
             // if requestedNote wasn't found, redirect
@@ -240,7 +240,7 @@ exports.note_update_post = [
             // get ID  of requested note
             const requestedNoteId = req.params.id;
 
-            getUsersNotes(req.user.id)
+            getAllNotesForUser(req.user.id)
                 .then(function (notes) {
 
                     // if requestedNote wasn't found, redirect
@@ -299,7 +299,7 @@ exports.note_delete_get = function (req, res, next) {
     // get ID  of requested note
     const requestedNoteId = req.params.id;
 
-    getUsersNotes(req.user.id)
+    getAllNotesForUser(req.user.id)
         .then(function (notes) {
 
             // if requestedNote wasn't found, redirect
@@ -333,7 +333,7 @@ exports.note_delete_post = function (req, res, next) {
     // get ID  of requested note
     const requestedNoteId = req.body.id;
 
-    getUsersNotes(req.user.id)
+    getAllNotesForUser(req.user.id)
         .then(function (notes) {
 
             // if requestedNote wasn't found, redirect

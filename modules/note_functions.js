@@ -1,6 +1,6 @@
 const {read} = require('../modules/crudMondoDB');
 
-exports.getUsersNotes = user_id => {
+exports.getAllNotesForUser = user_id => {
 
     // read all notes for this user_id
     const model = 'note';
