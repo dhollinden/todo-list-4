@@ -1,4 +1,4 @@
-const {read} = require('../modules/crudMondoDB');
+const { read } = require('../modules/' + process.env.DB);
 
 exports.getAllNotesForUser = user_id => {
 
