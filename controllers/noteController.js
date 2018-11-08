@@ -29,9 +29,7 @@ exports.index = function (req, res, next) {
 };
 
 
-// note detail
-// POST (choose note from Notes menu)
-// GET (redirect here after successfully creating or updating a note)
+// note detail (POST from Notes menu, GET from note_create_post and note_update_post)
 exports.note_detail = function(req, res, next) {
 
     // get ID  of requested note
@@ -40,9 +38,8 @@ exports.note_detail = function(req, res, next) {
     getUsersNotes(req.user.id)
         .then(function (notes) {
 
-            const requestedNote = findNoteById(notes, requestedNoteId);
-
             // if requestedNote wasn't found, redirect
+            const requestedNote = findNoteById(notes, requestedNoteId);
             if (!requestedNote) {
                 return res.redirect('/notes?message=invalidId');
             }
@@ -171,9 +168,8 @@ exports.note_update_get = function (req, res, next) {
     getUsersNotes(req.user.id)
         .then(function (notes) {
 
-            const requestedNote = findNoteById(notes, requestedNoteId);
-
             // if requestedNote wasn't found, redirect
+            const requestedNote = findNoteById(notes, requestedNoteId);
             if (!requestedNote) {
                 return res.redirect('/notes?message=invalidId');
             }
@@ -306,9 +302,8 @@ exports.note_delete_get = function (req, res, next) {
     getUsersNotes(req.user.id)
         .then(function (notes) {
 
-            const requestedNote = findNoteById(notes, requestedNoteId);
-
             // if requestedNote wasn't found, redirect
+            const requestedNote = findNoteById(notes, requestedNoteId);
             if (!requestedNote) {
                 return res.redirect('/notes?message=invalidId');
             }
@@ -341,9 +336,8 @@ exports.note_delete_post = function (req, res, next) {
     getUsersNotes(req.user.id)
         .then(function (notes) {
 
-            const requestedNote = findNoteById(notes, requestedNoteId);
-
             // if requestedNote wasn't found, redirect
+            const requestedNote = findNoteById(notes, requestedNoteId);
             if (!requestedNote) {
                 return res.redirect('/notes?message=invalidId');
             }
