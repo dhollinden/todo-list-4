@@ -177,30 +177,23 @@ exports.note_create_post = [
 // note update on GET
 exports.note_update_get = function (req, res, next) {
 
-    // get ID  of selected note from req.params
-    const selectedNoteId = req.params.id;
+    // get ID  of requested note
+    const requestedNoteId = req.params.id;
 
-    // read all notes for logged in user
-    const model = 'note';
-    const criteria = {'user_id': req.user.id};
-    const selection = '';
-    const options = {name: 1};
-
-    read(model, criteria, selection, options)
+    getUsersNotes(req.user.id)
         .then(function (notes) {
 
-            // look for the selected note among the user's notes
-            const selectedNote = notes.filter(note => String(note._id) === selectedNoteId)[0]
+            const requestedNote = findNoteById(notes, requestedNoteId);
 
-            // if selected note is not found, redirect with error message
-            if (selectedNote === null || typeof selectedNote === 'undefined') {
+            // if requestedNote wasn't found, redirect
+            if (!requestedNote) {
                 return res.redirect('/notes?message=invalidId');
             }
 
-            // selected note was found, so render page
+            // render page
             const pageContent = {
-                title: 'Update Note: ' + selectedNote.name,
-                selectedNote: selectedNote,
+                title: 'Update Note: ' + requestedNote.name,
+                selectedNote: requestedNote,
                 authenticated: req.isAuthenticated()
             }
 
@@ -355,30 +348,23 @@ exports.note_update_post = [
 // note delete GET
 exports.note_delete_get = function (req, res, next) {
 
-    // get ID  of selected note from req.params
-    const selectedNoteId = req.params.id
+    // get ID  of requested note
+    const requestedNoteId = req.params.id;
 
-    // read all notes for logged in user
-    const model = 'note';
-    const criteria = {'user_id': req.user.id};
-    const selection = '';
-    const options = {name: 1};
-
-    read(model, criteria, selection, options)
+    getUsersNotes(req.user.id)
         .then(function (notes) {
 
-            // look for the selected note among the user's notes
-            const selectedNote = notes.filter(note => String(note._id) === selectedNoteId)[0]
+            const requestedNote = findNoteById(notes, requestedNoteId);
 
-            // if selected note is not found, redirect with error message
-            if (selectedNote === null || typeof selectedNote === 'undefined') {
+            // if requestedNote wasn't found, redirect
+            if (!requestedNote) {
                 return res.redirect('/notes?message=invalidId');
             }
 
-            // selected note was found, so render page
+            // render page
             const pageContent = {
-                title: 'Delete Note: ' + selectedNote.name,
-                selectedNote: selectedNote,
+                title: 'Delete Note: ' + requestedNote.name,
+                selectedNote: requestedNote,
                 authenticated: req.isAuthenticated()
             }
 
