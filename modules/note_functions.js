@@ -11,7 +11,7 @@ exports.getAllNotesForUser = user_id => {
     const results = read(model, criteria, selection, options)
         .then(notes => {
 
-            return new Promise(function (resolve, reject) {
+            return new Promise( (resolve, reject) => {
 
                 resolve(notes);
 

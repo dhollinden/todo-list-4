@@ -14,7 +14,7 @@ const mongoose = require('mongoose');
 //   selection: space delimited string ('name body') or object ({name: 1, body: 1})
 //   return: promise for an array of documents
 
-exports.read = function(model, criteria, selection = null, options = null) {
+exports.read = (model, criteria, selection = null, options = null) => {
 
     let from = (model === 'note') ? Note : User;
 
@@ -29,7 +29,7 @@ exports.read = function(model, criteria, selection = null, options = null) {
 // create
 //   return: promise for document
 
-exports.create = function(model, criteria, options = null) {
+exports.create = (model, criteria, options = null) => {
 
     let from = (model === 'note') ? Note : User;
 
@@ -43,7 +43,7 @@ exports.create = function(model, criteria, options = null) {
 //   updates: object ({name: 'some name', body: 'some body'})
 //   return: promise for raw update
 
-exports.update = function(model, criteria, updates, options = null) {
+exports.update = (model, criteria, updates, options = null) => {
 
     let from = (model === 'note') ? Note : User;
 
@@ -56,7 +56,7 @@ exports.update = function(model, criteria, updates, options = null) {
 // delete
 //   return: promise
 
-exports.remove = function(model, criteria, options = null) {
+exports.remove = (model, criteria, options = null) => {
 
     let from = (model === 'note') ? Note : User;
 

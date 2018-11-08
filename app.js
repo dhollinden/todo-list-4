@@ -68,7 +68,7 @@ app.use(passport.session());
 // routers
 app.use('/', indexRouter);
 // redirect unauthenticated users from /notes to home page
-app.use('/notes', function (req, res, next) {
+app.use('/notes', (req, res, next) => {
     if(!req.isAuthenticated())
         res.redirect('/?message=not_logged_in');
     else
@@ -77,7 +77,7 @@ app.use('/notes', function (req, res, next) {
 
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use( (req, res, next) => {
     const err = new Error('Not Found');
     err.status = 404;
     next(err);
@@ -85,7 +85,7 @@ app.use(function(req, res, next) {
 
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use( (err, req, res, next) => {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

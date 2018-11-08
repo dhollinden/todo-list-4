@@ -6,7 +6,7 @@ const { getAllNotesForUser, findNoteById, findAnotherNoteWithSameName } = requir
 
 
 // notes home GET
-exports.index = function (req, res, next) {
+exports.index = (req, res, next) => {
 
     getAllNotesForUser(req.user.id)
         .then(notes => {
@@ -20,7 +20,7 @@ exports.index = function (req, res, next) {
             }
             res.render('notes', pageContent);
         })
-        .catch(err => {
+        .catch( err => {
 
             if (err) return next(err);
 
@@ -30,13 +30,13 @@ exports.index = function (req, res, next) {
 
 
 // note detail (POST from Notes menu, GET from note_create_post and note_update_post)
-exports.note_detail = function(req, res, next) {
+exports.note_detail = (req, res, next) => {
 
     // get ID  of requested note
     const requestedNoteId = req.params.id ? req.params.id : req.body.id;
 
     getAllNotesForUser(req.user.id)
-        .then(function (notes) {
+        .then(notes => {
 
             // if requestedNote wasn't found, redirect
             const requestedNote = findNoteById(notes, requestedNoteId);
@@ -54,7 +54,7 @@ exports.note_detail = function(req, res, next) {
             res.render('note_detail', pageContent);
 
         })
-        .catch(function (err) {
+        .catch( err => {
 
             if (err) return next(err);
 
@@ -64,7 +64,7 @@ exports.note_detail = function(req, res, next) {
 
 
 // note create on GET
-exports.note_create_get = function(req, res, next) {
+exports.note_create_get = (req, res, next) => {
 
     const pageContent = {
         title: 'Create Note',
@@ -120,7 +120,7 @@ exports.note_create_post = [
         else {
 
             getAllNotesForUser(req.user.id)
-                .then(function (notes) {
+                .then(notes => {
 
                     // if user has another note with same name, render again with error message and sanitized values
 
@@ -140,15 +140,15 @@ exports.note_create_post = [
 
                     const model = 'note';
                     create(model, note)
-                        .then(function(note) {
+                        .then(createdNote => {
 
                             // save was successful, redirect to detail page for note
-                            res.redirect(note.url);
+                            res.redirect(createdNote.url);
 
                         })
 
                 })
-                .catch(function (err) {
+                .catch( err => {
 
                     if (err) return next(err);
 
@@ -160,13 +160,13 @@ exports.note_create_post = [
 
 
 // note update on GET
-exports.note_update_get = function (req, res, next) {
+exports.note_update_get = (req, res, next) => {
 
     // get ID  of requested note
     const requestedNoteId = req.params.id;
 
     getAllNotesForUser(req.user.id)
-        .then(function (notes) {
+        .then(notes => {
 
             // if requestedNote wasn't found, redirect
             const requestedNote = findNoteById(notes, requestedNoteId);
@@ -184,7 +184,7 @@ exports.note_update_get = function (req, res, next) {
             res.render('note_form', pageContent);
 
         })
-        .catch(function (err) {
+        .catch( err => {
 
             if (err) return next(err);
 
@@ -241,7 +241,7 @@ exports.note_update_post = [
             const requestedNoteId = req.params.id;
 
             getAllNotesForUser(req.user.id)
-                .then(function (notes) {
+                .then(notes => {
 
                     // if requestedNote wasn't found, redirect
                     const requestedNote = findNoteById(notes, requestedNoteId);
@@ -273,7 +273,7 @@ exports.note_update_post = [
                     };
 
                     update(model, criteria, changes)
-                        .then(function (updated_note) {
+                        .then(updated_note => {
 
                             // redirect to sanitizedNote.url because update does not return a document
                             res.redirect(sanitizedNote.url);
@@ -281,7 +281,7 @@ exports.note_update_post = [
                         });
 
                 })
-                .catch(function (err) {
+                .catch( err => {
 
                     if (err) return next(err);
 
@@ -294,13 +294,13 @@ exports.note_update_post = [
 
 
 // note delete GET
-exports.note_delete_get = function (req, res, next) {
+exports.note_delete_get = (req, res, next) => {
 
     // get ID  of requested note
     const requestedNoteId = req.params.id;
 
     getAllNotesForUser(req.user.id)
-        .then(function (notes) {
+        .then(notes => {
 
             // if requestedNote wasn't found, redirect
             const requestedNote = findNoteById(notes, requestedNoteId);
@@ -318,7 +318,7 @@ exports.note_delete_get = function (req, res, next) {
             res.render('note_delete', pageContent);
 
         })
-        .catch(function (err) {
+        .catch( err => {
 
             if (err) return next(err);
 
@@ -328,13 +328,13 @@ exports.note_delete_get = function (req, res, next) {
 
 
 // note delete POST
-exports.note_delete_post = function (req, res, next) {
+exports.note_delete_post = (req, res, next) => {
 
     // get ID  of requested note
     const requestedNoteId = req.body.id;
 
     getAllNotesForUser(req.user.id)
-        .then(function (notes) {
+        .then(notes => {
 
             // if requestedNote wasn't found, redirect
             const requestedNote = findNoteById(notes, requestedNoteId);
@@ -350,14 +350,14 @@ exports.note_delete_post = function (req, res, next) {
             };
 
             remove(model, criteria)
-                .then(function(deleted_note) {
+                .then(deleted_note => {
 
                     res.redirect('/notes?message=note_deleted');
 
                 });
 
         })
-        .catch(function (err) {
+        .catch( err => {
 
             if (err) return next(err);
 
