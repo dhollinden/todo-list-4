@@ -122,45 +122,33 @@ exports.note_create_post = [
 
         else {
 
-            // query for note with same name for this user
+            getUsersNotes(req.user.id)
+                .then(function (notes) {
 
-            const model = 'note';
-            const criteria = {
-                'name': req.body.name,
-                'user_id': req.user.id
-            };
+                    // if user has another note with same name, render again with error message and sanitized values
 
-            read(model, criteria)
-                .then(function (note_same_name) {
-
-                    if (note_same_name[0]) {
-
-                        // note with same name exists, render again with error message
-
+                    const anotherNoteWithSameName = findAnotherNoteWithSameName(notes, null, req.body.name);
+                    if (anotherNoteWithSameName) {
                         const pageContent = {
                             title: 'Create Note: Error',
-                            note: note,
+                            selectedNote: note,
                             message: 'name_exists',
                             authenticated: req.isAuthenticated()
                         }
 
-                        res.render('note_form', pageContent);
-
+                        return res.render('note_form', pageContent);
                     }
 
-                    else {
+                    // note name is unique, so save note
 
-                        // note name is unique, so save note
+                    const model = 'note';
+                    create(model, note)
+                        .then(function(note) {
 
-                        create(model, note)
-                            .then(function(note) {
+                            // save was successful, redirect to detail page for note
+                            res.redirect(note.url);
 
-                                // save was successful, redirect to detail page for note
-                                res.redirect(note.url);
-
-                            })
-
-                    }
+                        })
 
                 })
                 .catch(function (err) {
