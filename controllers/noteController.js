@@ -2,7 +2,7 @@ const Note = require('../models/note_model');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 const {read, create, update, remove} = require('../modules/crudMondoDB');
-const { getUsersNotes, selectedNoteExists, findNoteById, findAnotherNoteWithSameName } = require('../modules/note_functions');
+const { getUsersNotes, findNoteById, findAnotherNoteWithSameName } = require('../modules/note_functions');
 
 
 // notes home GET

@@ -1,6 +1,6 @@
 const {read} = require('../modules/crudMondoDB');
 
-exports.getUsersNotes = function (user_id) {
+exports.getUsersNotes = user_id => {
 
     // read all notes for this user_id
     const model = 'note';
@@ -28,7 +28,7 @@ exports.getUsersNotes = function (user_id) {
 }
 
 
-exports.findNoteById = function (notes, note_id) {
+exports.findNoteById = (notes, note_id) => {
 
     // look for a note with _id = note_id among the supplied notes
     const foundNote = notes.filter(note => String(note._id) === note_id)[0]
@@ -46,20 +46,5 @@ exports.findAnotherNoteWithSameName = (notes, note_id, newName) => {
 
     // return the note, or null if a note is not found
     return (foundNote === null || typeof foundNote === 'undefined') ? null : foundNote;
-
-}
-
-
-exports.selectedNoteExists = function (notes, note_id) {
-
-    // look for a note with _id = note_id among the notes
-    const theNote = notes.filter(note => String(note._id) === note_id)[0]
-
-    // if a note with _id = note_id is not found, return false
-    if (theNote === null || typeof theNote === 'undefined') {
-        return false;
-    } else {
-        return true;
-    }
 
 }
