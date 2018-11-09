@@ -2,7 +2,7 @@ const { read } = require('../modules/' + process.env.DB);
 
 exports.getAllNotesForUser = user_id => {
 
-    // read all notes for this user_id
+    // read all notes for this user_id and return as a promise
     const model = 'note';
     const criteria = {'user_id': user_id};
     const selection = '';
