@@ -114,7 +114,7 @@ exports.note_create_post = [
 
         // create a note object with sanitized data
 
-        const note = new Note(
+        const sanitizedNote = new Note(
 
             {
                 name: req.body.name,
@@ -131,7 +131,7 @@ exports.note_create_post = [
             const pageContent = {
 
                 title: 'Create Note: Error',
-                note: note,
+                note: sanitizedNote,
                 errors: errors.array(),
                 authenticated: req.isAuthenticated()
 
@@ -169,7 +169,7 @@ exports.note_create_post = [
 
                     const model = 'note';
 
-                    create(model, note)
+                    create(model, sanitizedNote)
 
                         .then(createdNote => {
 
