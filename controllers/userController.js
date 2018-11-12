@@ -5,6 +5,7 @@ const Note = require('../models/note_model');
 const bcrypt = require('bcrypt-nodejs');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
+const { getAllNotesForUser, findNoteById, findAnotherNoteWithSameName } = require('../modules/note_functions');
 
 
 // ------------- Passport -------------
@@ -266,18 +267,15 @@ exports.logout_get = function (req, res, next) {
 }
 
 
+
 // account GET
 exports.account = function (req, res, next) {
 
     const message = req.query.message;
 
-    // retrieve notes where user_id matches logged in user
-    Note.find({'user_id': req.user.id})
-        .select()
-        .sort({name: 1})
-        .exec(function (err, notes) {
+    getAllNotesForUser(req.user.id)
 
-            if (err) return next(err);
+        .then(notes => {
 
             // render page
             const pageContent = {
@@ -288,9 +286,17 @@ exports.account = function (req, res, next) {
                 message: message,
                 authenticated: req.isAuthenticated()
             }
+
             res.render('user_account', pageContent);
 
+        })
+
+        .catch( err => {
+
+            if (err) return next(err);
+
         });
+
 };
 
 
