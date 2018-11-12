@@ -2,7 +2,7 @@ const Note = require('../models/note_model');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 const { read, create, update, remove } = require('../modules/' + process.env.DB);
-const { getAllNotesForUser, findNoteById, findAnotherNoteWithSameName } = require('../modules/note_functions');
+const { getAllNotesForUser, getRequestedNoteOrRedirectIfIfNotFound, findAnotherNoteWithSameName } = require('../modules/note_functions');
 
 
 // notes home GET - display menu with all notes
@@ -50,10 +50,7 @@ exports.note_detail = (req, res, next) => {
 
             // if user does not have note with requestedNoteId, redirect
 
-            const requestedNote = findNoteById(notes, requestedNoteId);
-            if (!requestedNote) {
-                return res.redirect('/notes?message=invalidId');
-            }
+            const requestedNote = getRequestedNoteOrRedirectIfIfNotFound(notes, requestedNoteId)
 
             // render page with requestedNote
 
@@ -203,10 +200,8 @@ exports.note_update_get = (req, res, next) => {
 
             // if user does not have note with requestedNoteId, redirect
 
-            const requestedNote = findNoteById(notes, requestedNoteId);
-            if (!requestedNote) {
-                return res.redirect('/notes?message=invalidId');
-            }
+            const requestedNote = getRequestedNoteOrRedirectIfIfNotFound(notes, requestedNoteId)
+
 
             // render page
 
@@ -293,10 +288,8 @@ exports.note_update_post = [
 
                     // if user does not have note with requestedNoteId, redirect
 
-                    const requestedNote = findNoteById(notes, requestedNoteId);
-                    if (!requestedNote) {
-                        return res.redirect('/notes?message=invalidId');
-                    }
+                    const requestedNote = getRequestedNoteOrRedirectIfIfNotFound(notes, requestedNoteId)
+
 
                     // if user has another note with same name, render again with error message and sanitized values
 
@@ -368,10 +361,8 @@ exports.note_delete_get = (req, res, next) => {
 
             // if user does not have note with requestedNoteId, redirect
 
-            const requestedNote = findNoteById(notes, requestedNoteId);
-            if (!requestedNote) {
-                return res.redirect('/notes?message=invalidId');
-            }
+            const requestedNote = getRequestedNoteOrRedirectIfIfNotFound(notes, requestedNoteId)
+
 
             // render page
 
@@ -409,10 +400,8 @@ exports.note_delete_post = (req, res, next) => {
 
             // if user does not have note with requestedNoteId, redirect
 
-            const requestedNote = findNoteById(notes, requestedNoteId);
-            if (!requestedNote) {
-                return res.redirect('/notes?message=invalidId');
-            }
+            const requestedNote = getRequestedNoteOrRedirectIfIfNotFound(notes, requestedNoteId)
+
 
             // delete requestedNote, redirect to notes page
 

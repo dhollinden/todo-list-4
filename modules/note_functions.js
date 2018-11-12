@@ -28,13 +28,17 @@ exports.getAllNotesForUser = user_id => {
 }
 
 
-exports.findNoteById = (notes, note_id) => {
+exports.getRequestedNoteOrRedirectIfIfNotFound = (notes, requestedNoteId) => {
 
     // look for a note with _id = note_id among the supplied notes
-    const foundNote = notes.filter(note => String(note._id) === note_id)[0]
 
-    // return the note, or null if a note is not found
-    return (foundNote === null || typeof foundNote === 'undefined') ? null : foundNote;
+    const foundNote = notes.filter(note => String(note._id) === requestedNoteId)[0]
+
+    if ((foundNote === null || typeof foundNote === 'undefined')) {
+        return res.redirect('/notes?message=invalidId');
+    }
+
+    return foundNote
 
 }
 
