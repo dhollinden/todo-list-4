@@ -18,24 +18,37 @@ passport.use(new LocalStrategy(
 
     (email, password, done) => {
 
-        User.findOne({'email': email}).exec(function (err, user) {
+        const model = 'user'
+        const criteria = { 'email': email }
 
-            // if there is an error while looking for user, return "done" with the error
-            if (err) return done(err);
+        read(model, criteria)
 
-            // if there is no user with the supplied email address, return "done" with an error message
-            if (!user) {
-                return done(null, false, { message: 'login_invalid_creds' });
-            }
+            .then( user => {
 
-            // if user's password doesn't match the supplied password, return "done" with an error message
-            if (!bcrypt.compareSync(password, user.password)) {
-                return done(null, false, { message: 'login_invalid_creds' });
-            }
+                // if there is no user with the supplied email address, return "done" with an error message
 
-            // is user is found and password matches, return "done" with the user
-            return done(null, user);
-        })
+                if (!user[0]) {
+                   return done(null, false, { message: 'login_invalid_creds' });
+                }
+
+                // if user's password doesn't match the supplied password, return "done" with an error message
+
+                if (!bcrypt.compareSync(password, user[0].password)) {
+                    return done(null, false, { message: 'login_invalid_creds' });
+                }
+
+                // return "done" with the user
+
+                return done(null, user[0]);
+
+
+            })
+            .catch( err => {
+
+                if (err) return done(err);
+
+            });
+
     }
 ));
 
@@ -70,7 +83,7 @@ passport.deserializeUser((id, done) => {
             // if the search results in an error, return "done" with the error and no user
 
             if (err) return done(err, false);
-        })
+        });
 
 });
 
