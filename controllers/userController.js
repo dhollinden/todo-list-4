@@ -463,7 +463,6 @@ exports.account_password_post = [
             // there are errors, so render again with error messages
             const pageContent = {
                 title: 'My Account: Update Password: Error',
-                password: req.user.password,
                 errors: errors.array(),
                 authenticated: req.isAuthenticated()
             }
@@ -478,11 +477,15 @@ exports.account_password_post = [
             if (!bcrypt.compareSync(req.body.cur_password, req.user.password)) {
 
                 // no match, so render page with error message
+
                 const pageContent = {
+
                     title: 'My Account: Update Password: Error',
                     message: 'incorrect_password',
                     authenticated: req.isAuthenticated()
+
                 }
+
                 res.render('user_password_form', pageContent);
 
             }
@@ -490,17 +493,28 @@ exports.account_password_post = [
             else {
 
                 // passwords match, so hash the new password
+
                 const saltRounds = 10;
                 const new_password_hashed = bcrypt.hashSync(req.body.new_password, bcrypt.genSaltSync(saltRounds));
 
                 // update the password
-                User.findByIdAndUpdate(req.user.id, {password: new_password_hashed}, function (err) {
 
-                    if (err) return next(err);
+                const model = 'user';
+                const criteria = { 'user_id': req.user.id };
+                const updates = { 'password': new_password_hashed };
 
-                    return res.redirect('/account?message=password_update_success')
+                update(model, criteria, updates)
 
-                })
+                    .then( result => {
+
+                        return res.redirect('/account?message=password_update_success')
+
+                    })
+                    .catch( err => {
+
+                        if (err) return next(err);
+
+                    })
 
             }
 
