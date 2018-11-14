@@ -60,7 +60,7 @@ exports.remove = (model, criteria, options = null) => {
 
     let from = (model === 'note') ? Note : User;
 
-    return from.findOneAndDelete(criteria)
+    return from.remove(criteria)
         .exec();
 
 };

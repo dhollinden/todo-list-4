@@ -5,6 +5,7 @@ const Note = require('../models/note_model');
 const bcrypt = require('bcrypt-nodejs');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
+const { read, create, update, remove } = require('../modules/' + process.env.DB);
 const { getAllNotesForUser, findNoteById, findAnotherNoteWithSameName } = require('../modules/note_functions');
 
 
@@ -304,28 +305,42 @@ exports.account = function (req, res, next) {
 // account delete GET
 exports.account_delete = function (req, res, next) {
 
-    // check if id on query string matches id of logged in user
-    if (req.user.id == req.params.id) {
-
-        // delete notes
-        Note.deleteMany({user_id: req.user.id}, function (err) {
-            if (err) return next(err);
-        })
-
-        // delete user
-        User.deleteOne({_id: req.user.id}, function (err) {
-            if (err) return next(err);
-        })
-
-        // logout user, redirect to home page
-        req.logOut()
-        res.redirect('/?message=account_deleted');
-
-    } else {
+    if (req.user.id !== req.params.id) {
 
         // ids don't match, so redirect
         res.redirect('/account?message=delete_failed')
+
     }
+
+    // proceed with delete
+
+    const model = 'note';
+    const criteria = { 'user_id': req.user.id };
+
+    remove(model, criteria)
+
+        .then( deleted_note => {
+
+            const model = 'user';
+            const criteria = { 'user_id': req.user.id };
+
+            remove(model, criteria)
+
+                .then( deleted_user => {
+
+                // logout user, redirect to home page
+                req.logOut()
+                res.redirect('/?message=account_deleted');
+
+            })
+
+        })
+        .catch( err => {
+
+            if (err) return next(err);
+
+        });
+
 }
 
 
