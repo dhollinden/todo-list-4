@@ -347,21 +347,18 @@ exports.account_delete = function (req, res, next) {
 // account email update GET
 exports.account_email_get = function (req, res, next) {
 
-    // look up current email in database  --- unnecessary?
-    User.findById(req.user.id, function (err, account) {
+    // render page
 
-        if (err) return next(err);
+    const pageContent = {
 
-        // render page
-        const message = req.query.message;
-        const pageContent = {
-            title: 'My Account: Update Email Address',
-            email: account.email,
-            message: message,
-            authenticated: req.isAuthenticated()
-        }
-        res.render('user_email_form', pageContent);
-    })
+        title: 'My Account: Update Email Address',
+        email: req.user.email,
+        message: req.query.message,
+        authenticated: req.isAuthenticated()
+
+    }
+
+    res.render('user_email_form', pageContent);
 
 }
 
@@ -476,7 +473,8 @@ exports.account_password_post = [
 
         else {
 
-            // check if submitted current password matches what's in database
+            // test the submitted current password against what's in database
+
             if (!bcrypt.compareSync(req.body.cur_password, req.user.password)) {
 
                 // no match, so render page with error message
