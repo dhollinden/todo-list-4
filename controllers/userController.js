@@ -362,31 +362,42 @@ exports.account_email_get = function (req, res, next) {
 
 }
 
+
+
 // account email update POST
 exports.account_email_post = [
 
     // Validate email
+
     body('new_email', 'You must enter a valid email address for the new email address.')
         .isEmail(),
 
     // Sanitize email
+
     sanitizeBody('new_email').trim().escape(),
 
     // Process request
+
     (req, res, next) => {
 
-        // Extract the validation errors
+        // Extract validation errors
+
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
 
             // there are errors, so render again with error messages
+
             const pageContent = {
-                title: 'My Account: Update Email Address',
+
+                title: 'My Account: Update Email Address: Error',
                 email: req.user.email,
+                new_email: req.body.new_email,
                 errors: errors.array(),
                 authenticated: req.isAuthenticated()
+
             }
+
             res.render('user_email_form', pageContent);
 
         }
@@ -394,33 +405,56 @@ exports.account_email_post = [
         else {
 
             // check whether email address has already been used
-            User.findOne({'email': req.body.new_email}).exec(function (err, existing_user) {
 
-                if (err) return next(err);
+            const model = 'user'
+            const criteria = { 'email': req.body.new_email }
 
-                if (existing_user) {
+            read(model, criteria)
 
-                    // email has been used, render again with error message
-                    const pageContent = {
-                        title: 'My Account: Update Email Address: Error',
-                        message: 'email_update_registered',
-                        authenticated: req.isAuthenticated()
+                .then( existing_user => {
+
+                    if (existing_user[0]) {
+
+                        // email has been used, render again with error message
+
+                        const pageContent = {
+
+                            title: 'My Account: Update Email Address: Error',
+                            email: req.user.email,
+                            new_email: req.body.new_email,
+                            message: 'email_update_registered',
+                            authenticated: req.isAuthenticated()
+
+                        }
+
+                        res.render('user_email_form', pageContent);
                     }
-                    res.render('user_email_form', pageContent);
-
-                } else {
 
                     // update email address
-                    User.findByIdAndUpdate(req.user.id, {email: req.body.new_email}, function (err) {
 
-                        if (err) return next(err);
+                    const model = 'user'
+                    const criteria = { '_id': req.user.id }
+                    const updates = { 'email': req.body.new_email }
 
-                        return res.redirect('/account?message=email_update_success')
+                    console.log(`criteria._id = ${criteria._id}`)
+                    console.log(`updates.email = ${updates.email}`)
+
+                    update(model, criteria, updates)
+
+                        .then( updated_user => {
+
+                            return res.redirect('/account?message=email_update_success')
+
+                        })
 
                     })
 
-                }
-            })
+                .catch( err => {
+
+                    if (err) return next(err);
+
+                });
+
         }
     }
 ];
@@ -440,6 +474,7 @@ exports.account_password_get = function (req, res, next) {
     res.render('user_password_form', pageContent);
 
 }
+
 
 
 // account password update POST
@@ -500,7 +535,7 @@ exports.account_password_post = [
                 // update the password
 
                 const model = 'user';
-                const criteria = { 'user_id': req.user.id };
+                const criteria = { '_id': req.user.id };
                 const updates = { 'password': new_password_hashed };
 
                 update(model, criteria, updates)
