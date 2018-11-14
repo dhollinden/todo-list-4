@@ -52,14 +52,25 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser((id, done) => {
 
     // search for user by id
-    User.findById(id).exec(function (err, user) {
 
-        // if the search results in an error, return "done" with the error and no user
-        if (err) return done(err, false);
+    const model = 'user'
+    const criteria = { '_id': id }
 
-        // if user is found, return "done" with the user
-        return done(null, user);
-    })
+    read(model, criteria)
+
+        .then( user => {
+
+            // if user is found, return "done" with the user
+
+            return done(null, user[0]);
+
+        })
+        .catch( err => {
+
+            // if the search results in an error, return "done" with the error and no user
+
+            if (err) return done(err, false);
+        })
 
 });
 
@@ -183,10 +194,13 @@ exports.login_get = function (req, res, next) {
 
     const message = req.query.message;
     const pageContent = {
+
         title: 'Log In',
         message: message,
         authenticated: req.isAuthenticated()
+
     }
+
     res.render('user_form', pageContent);
 
 };
@@ -322,7 +336,7 @@ exports.account_delete = function (req, res, next) {
         .then( deleted_note => {
 
             const model = 'user';
-            const criteria = { 'user_id': req.user.id };
+            const criteria = { '_id': req.user.id };
 
             remove(model, criteria)
 
