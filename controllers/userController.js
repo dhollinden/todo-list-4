@@ -163,6 +163,64 @@ exports.signup_post = [
         else {
 
             // check whether email address has already been used
+
+            const model = 'user'
+            const criteria = { 'email': user.email }
+
+            read(model, criteria)
+
+                .then( other_user_with_email => {
+
+                    if (other_user_with_email[0]) {
+
+                        // email has been used, render again with error message
+
+                        const pageContent = {
+
+                            title: 'Sign Up Error',
+                            message: 'signup_email_registered',
+                            authenticated: req.isAuthenticated()
+
+                        }
+
+                        res.render('user_form', pageContent);
+
+                    }
+
+                    // email is unique, hash the password
+
+                    const saltRounds = 10;
+                    user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(saltRounds));
+
+                    // save user
+
+                    const model = 'user'
+                    const criteria = {
+
+                        email: user.email,
+                        password: user.password
+                    }
+
+                    create(model, user)
+
+                        .then( created_user => {
+
+                            // user was created, redirect to login page
+
+                            return res.redirect('/login?message=signup_success')
+
+                        })
+
+                })
+
+                .catch( err => {
+
+                    if (err) return next(err);
+
+                });
+
+
+/*
             User.findOne({'email': user.email}).exec(function (err, existing_user) {
 
                 if (err) return next(err);
@@ -197,6 +255,7 @@ exports.signup_post = [
 
                 }
             })
+*/
         }
     }
 ];
