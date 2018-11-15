@@ -1,10 +1,11 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-const User = require('../models/user_model');
-const Note = require('../models/note_model');
 const bcrypt = require('bcrypt-nodejs');
+
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
+
+const User = require('../models/user_model');
 const { read, create, update, remove } = require('../modules/' + process.env.DB);
 const { getAllNotesForUser, findNoteById, findAnotherNoteWithSameName } = require('../modules/note_functions');
 
@@ -25,19 +26,19 @@ passport.use(new LocalStrategy(
 
             .then( user => {
 
-                // if there is no user with the supplied email address, return "done" with an error message
+                // if there is no user with this email address, return "done" with error message
 
                 if (!user[0]) {
                    return done(null, false, { message: 'login_invalid_creds' });
                 }
 
-                // if user's password doesn't match the supplied password, return "done" with an error message
+                // if supplied password doesn't match password associated with email address, return "done" with error message
 
                 if (!bcrypt.compareSync(password, user[0].password)) {
                     return done(null, false, { message: 'login_invalid_creds' });
                 }
 
-                // return "done" with the user
+                // the credentials are good, return "done" with the user
 
                 return done(null, user[0]);
 
@@ -56,10 +57,12 @@ passport.use(new LocalStrategy(
 // tell passport how to serialize the user
 passport.serializeUser((user, done) => {
 
-    // given a user, simply call "done" with the user.id
+    // given a user, call "done" with the user.id
+
     done(null, user.id);
 
 });
+
 
 // tell passport how to deserialize the user
 passport.deserializeUser((id, done) => {
@@ -97,10 +100,13 @@ exports.index = function (req, res, next) {
 
     const message = req.query.message;
     const pageContent = {
+
         title: 'Notes Home',
         message: message,
         authenticated: req.isAuthenticated()
+
     }
+
     res.render('index', pageContent);
 
 }
@@ -110,9 +116,12 @@ exports.index = function (req, res, next) {
 exports.signup_get = function (req, res, next) {
 
     const pageContent = {
+
         title: 'Sign Up',
         authenticated: req.isAuthenticated()
+
     }
+
     res.render('user_form', pageContent);
 
 };
@@ -122,6 +131,7 @@ exports.signup_get = function (req, res, next) {
 exports.signup_post = [
 
     // validate email and password
+
     body('email', 'You must enter a valid email address.')
         .isEmail(),
 
@@ -130,15 +140,19 @@ exports.signup_post = [
         .trim(),
 
     // sanitize email, but not password
+
     sanitizeBody('email').trim().escape(),
 
     // process request
+
     (req, res, next) => {
 
         // extract any validation errors
+
         const errors = validationResult(req);
 
         // create a user object with sanitized data
+
         const user = new User(
             {
                 email: req.body.email,
@@ -148,14 +162,17 @@ exports.signup_post = [
 
         if (!errors.isEmpty()) {
 
-            // there are validation errors
-            // render again with error messages and sanitized email
+            // validation errors, render again with error messages and sanitized email
+
             const pageContent = {
+
                 title: 'Sign Up Error',
                 email: user.email,
                 errors: errors.array(),
                 authenticated: req.isAuthenticated()
+
             }
+
             res.render('user_form', pageContent);
 
         }
@@ -199,6 +216,7 @@ exports.signup_post = [
 
                         email: user.email,
                         password: user.password
+
                     }
 
                     create(model, user)
@@ -220,42 +238,6 @@ exports.signup_post = [
                 });
 
 
-/*
-            User.findOne({'email': user.email}).exec(function (err, existing_user) {
-
-                if (err) return next(err);
-
-                if (existing_user) {
-
-                    // email has been used, render again with error message
-                    const pageContent = {
-                        title: 'Sign Up Error',
-                        message: 'signup_email_registered',
-                        authenticated: req.isAuthenticated()
-                    }
-                    res.render('user_form', pageContent);
-
-                }
-
-                else {
-
-                    // email is new, hash the password
-                    const saltRounds = 10;
-                    user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(saltRounds));
-
-                    // save user
-                    user.save(function (err) {
-
-                        if (err) return next(err);
-
-                        // save was successful, redirect to login page
-                        return res.redirect('/login?message=signup_success')
-
-                    })
-
-                }
-            })
-*/
         }
     }
 ];
@@ -282,6 +264,7 @@ exports.login_get = function (req, res, next) {
 exports.login_post = [
 
     // Validate email. Require password, but do not validate min length of 8
+
     body('email', 'You must enter a valid email address.')
         .isEmail(),
 
@@ -290,47 +273,63 @@ exports.login_post = [
         .trim(),
 
     // Sanitize email, but not password
+
     sanitizeBody('email').trim().escape(),
 
     // Process request
+
     (req, res, next) => {
 
         // Extract the validation errors
+
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
 
-            // there are validation errors
-            // render again with error messages and sanitized values
+            // validation errors, render again with error messages and sanitized values
+
             const pageContent = {
-                title: 'Log In Error',
+
+                title: 'Log In: Error',
+                email: req.body.email,
                 errors: errors.array(),
                 authenticated: req.isAuthenticated()
+
             }
+
             res.render('user_form', pageContent);
 
         }
+
         else {
 
             // authenticate using Passport local strategy
+
             passport.authenticate('local', (err, user, info) => {
 
                 // check for authentication error
+
                 if (err) return next(err);
 
                 // if Passport returns "info" about problems with credentials, render page again
+
                 if (info) {
 
                     const pageContent = {
+
                         title: 'Log In Error',
+                        email: req.body.email,
                         message: info.message,
                         authenticated: req.isAuthenticated()
+
                     }
+
                     return res.render('user_form', pageContent);
 
                 }
 
-                // authentication was successful, so log in user
+                // authentication was successful, so log user in
+
                 req.login(user, (err) => {
 
                     if (err) return next(err);
@@ -365,13 +364,16 @@ exports.account = function (req, res, next) {
         .then(notes => {
 
             // render page
+
             const pageContent = {
+
                 title: 'My Account',
                 email: req.user.email,
                 user_id: req.user.id,
                 notes: notes,
                 message: message,
                 authenticated: req.isAuthenticated()
+
             }
 
             res.render('user_account', pageContent);
@@ -394,18 +396,21 @@ exports.account_delete = function (req, res, next) {
     if (req.user.id !== req.params.id) {
 
         // ids don't match, so redirect
+
         res.redirect('/account?message=delete_failed')
 
     }
 
-    // proceed with delete
+    // proceed, delete notes first
 
     const model = 'note';
     const criteria = { 'user_id': req.user.id };
 
     remove(model, criteria)
 
-        .then( deleted_note => {
+        .then( deleted_notes => {
+
+            // then delete user
 
             const model = 'user';
             const criteria = { '_id': req.user.id };
@@ -415,6 +420,7 @@ exports.account_delete = function (req, res, next) {
                 .then( deleted_user => {
 
                 // logout user, redirect to home page
+
                 req.logOut()
                 res.redirect('/?message=account_deleted');
 
@@ -522,9 +528,6 @@ exports.account_email_post = [
                     const criteria = { '_id': req.user.id }
                     const updates = { 'email': req.body.new_email }
 
-                    console.log(`criteria._id = ${criteria._id}`)
-                    console.log(`updates.email = ${updates.email}`)
-
                     update(model, criteria, updates)
 
                         .then( updated_user => {
@@ -551,12 +554,16 @@ exports.account_email_post = [
 exports.account_password_get = function (req, res, next) {
 
     // render page
+
     const message = req.query.message;
     const pageContent = {
+
         title: 'My Account: Update Password',
         message: message,
         authenticated: req.isAuthenticated()
+
     }
+
     res.render('user_password_form', pageContent);
 
 }
@@ -567,6 +574,7 @@ exports.account_password_get = function (req, res, next) {
 exports.account_password_post = [
 
     // validate new password field
+
     body('new_password', 'Your new password must be at least eight characters long.')
         .isLength({ min: 8 })
         .trim(),
@@ -574,19 +582,25 @@ exports.account_password_post = [
     // do not sanitize password fields
 
     // Process request
+
     (req, res, next) => {
 
         // Extract the validation errors
+
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
 
             // there are errors, so render again with error messages
+
             const pageContent = {
+
                 title: 'My Account: Update Password: Error',
                 errors: errors.array(),
                 authenticated: req.isAuthenticated()
+
             }
+
             res.render('user_password_form', pageContent);
 
         }

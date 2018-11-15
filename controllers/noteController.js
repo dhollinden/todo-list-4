@@ -15,10 +15,12 @@ exports.index = (req, res, next) => {
             // render page
 
             const pageContent = {
+
                 title: 'My Notes',
                 notes: notes,
                 message: req.query.message,
                 authenticated: req.isAuthenticated()
+
             }
 
             res.render('notes', pageContent);
@@ -58,10 +60,12 @@ exports.note_detail = (req, res, next) => {
             // render page with requestedNote
 
             const pageContent = {
+
                 title: 'My Notes: ' + requestedNote.name,
                 selectedNote: requestedNote,
                 notes: notes,
                 authenticated: req.isAuthenticated()
+
             }
 
             res.render('note_detail', pageContent);
@@ -81,8 +85,10 @@ exports.note_detail = (req, res, next) => {
 exports.note_create_get = (req, res, next) => {
 
     const pageContent = {
+
         title: 'Create Note',
         authenticated: req.isAuthenticated()
+
     }
 
     res.render('note_form', pageContent);
