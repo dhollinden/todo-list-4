@@ -1,6 +1,7 @@
-const Note = require('../models/note_model');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
+
+const Note = require('../models/note_model');
 const { read, create, update, remove } = require('../modules/' + process.env.DB);
 const { getAllNotesForUser, findNoteById, findAnotherNoteWithSameName } = require('../modules/note_functions');
 
