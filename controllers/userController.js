@@ -22,6 +22,9 @@ passport.use(new LocalStrategy(
         const model = 'user'
         const criteria = { 'email': email }
 
+        console.log(`inside passport.use local strategy`)
+
+
         read(model, criteria)
 
             .then( user => {
@@ -59,13 +62,26 @@ passport.serializeUser((user, done) => {
 
     // given a user, call "done" with the user.id
 
-    done(null, user.id);
+    console.log(`inside passport.serializeUser`)
+    console.log("user = ", user)
+
+    // mLabs and DynamoDB both return user._id from the database call
+    // but for some unknown reason the user parameter here needs to be user._id for DynamoDB
+    // and user.id for mLab
+
+    if (user._id) {
+        done(null, user._id);  // DynamoDB
+    } else {
+        done(null, user.id);  // mLab
+    }
 
 });
 
 
 // tell passport how to deserialize the user
 passport.deserializeUser((id, done) => {
+
+    console.log(`inside passport.deserializeUser`)
 
     // search for user by id
 

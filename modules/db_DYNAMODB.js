@@ -25,28 +25,82 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 //   return: promise for an array of documents
 exports.read = (type, criteria, selection = null, options = null) => {
 
+    console.log(`inside db_DYNAMODB read`)
+
     const table = (type === 'user') ? "users" : "notes";
     const id = criteria._id;
-    const params = {
-        TableName: table,
-        Key:{
-            "_id": id
-        }
-    };
+    const email = criteria.email;
+
+    let params;
+
+    switch(table) {
+
+        case 'users':
+
+            if (email) {
+
+                params = {
+
+                    TableName : table,
+                    IndexName: 'email-index',
+                    KeyConditionExpression: "#email = :email",
+                    ExpressionAttributeNames:{
+                        "#email": "email"
+                    },
+                    ExpressionAttributeValues: {
+                        ":email": email
+                    }
+
+                };
+
+            } else {
+
+                params = {
+
+                    TableName : table,
+                    KeyConditionExpression: "#id = :id",
+                    ExpressionAttributeNames:{
+                        "#id": "_id"
+                    },
+                    ExpressionAttributeValues: {
+                        ":id": id
+                    }
+
+                };
+
+            }
+
+            break
+
+        case 'notes':
+
+            params = {
+
+                TableName: table,
+                Key:{
+                    "note_id": criteria._id
+                }
+
+            };
+
+    }
+
+
+    console.log("params = " , params);
 
     var results = [];
 
     return new Promise((resolve, reject) => {
 
-        docClient.get(params).promise()
+        docClient.query(params).promise()
 
             .then((data) => {
 
-                // console.log("GetItem succeeded:", data);
-                for (let result in data) {
-                    results.push(data[result])
-                }
-                // results.forEach(x => { Object.keys(x).forEach(key => console.log(`${key} = ${x[key]}`))})
+//                console.log("GetItem succeeded:", data);
+
+                results = data.Items
+
+//                console.log("results[0] = ", results[0])
                 resolve (results);
 
             })
@@ -57,31 +111,6 @@ exports.read = (type, criteria, selection = null, options = null) => {
 
             });
     });
-
-    /*
-        const params2 = {
-            TableName : table,
-            KeyConditionExpression: "#id = :id",
-            ExpressionAttributeNames:{
-                "#id": "_id"
-            },
-            ExpressionAttributeValues: {
-                ":id": id
-            }
-        };
-
-        docClient.query(params2, function(err, data) {
-            if (err) {
-                console.error("Unable to query. Error:", JSON.stringify(err, null, 2));
-            } else {
-                console.log("Query succeeded.");
-                data.Items.forEach(function(item) {
-                    console.log(" -", item.year + ": " + item.title);
-                });
-            }
-        });
-    */
-
 
 };
 
