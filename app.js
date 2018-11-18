@@ -23,12 +23,26 @@ const compression = require('compression');
 
 
 // database connection
-const mongoose = require('mongoose');
-const mongoDB = process.env.MONGODB_URI || 'mongodb://todo-list-4-admin:todo-list-4-password@ds235461.mlab.com:35461/todo-list-4';
-mongoose.connect(mongoDB, { useNewUrlParser: true });
-mongoose.Promise = global.Promise;
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+const db_type = process.env.DB
+if (db_type === "db_MLAB") {
+
+    const mongoose = require('mongoose');
+    const mongoDB = process.env.MONGODB_URI || 'mongodb://todo-list-4-admin:todo-list-4-password@ds235461.mlab.com:35461/todo-list-4';
+    mongoose.connect(mongoDB, { useNewUrlParser: true });
+    mongoose.Promise = global.Promise;
+    const db = mongoose.connection;
+    db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+
+} else {
+
+    var AWS = require("aws-sdk");
+
+    AWS.config.update({endpoint: "https://dynamodb.us-west-2.amazonaws.com"});
+
+    var docClient = new AWS.DynamoDB.DocumentClient();
+
+
+}
 
 
 const app = express();
