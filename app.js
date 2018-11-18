@@ -22,7 +22,7 @@ const logger = require('morgan');
 const compression = require('compression');
 
 
-// database connection
+// database connection for mLab
 const db_type = process.env.DB
 if (db_type === "db_MLAB") {
 
@@ -33,17 +33,7 @@ if (db_type === "db_MLAB") {
     const db = mongoose.connection;
     db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
-} else {
-
-    var AWS = require("aws-sdk");
-
-    AWS.config.update({endpoint: "https://dynamodb.us-west-2.amazonaws.com"});
-
-    var docClient = new AWS.DynamoDB.DocumentClient();
-
-
 }
-
 
 const app = express();
 
