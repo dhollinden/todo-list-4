@@ -1,3 +1,6 @@
+const uuid = require('uuid/v4');
+
+
 
 // ALL
 // model: data model (Note or User)
@@ -117,12 +120,67 @@ exports.read = (type, criteria, selection = null, options = null) => {
 
 // create
 //   return: promise for document
+exports.create = (type, criteria, options = null) => {
 
-exports.create = (model, criteria, options = null) => {
+    console.log(`inside db_DYNAMODB create`)
 
-    let from = (model === 'note') ? Note : User;
+    const table = (type === 'user') ? "users" : "notes";
+    const email = criteria.email;
+    const password = criteria.password;
+    const id = String(uuid());
 
-    return "from db_DYNAMODB create callback"
+    let params;
+
+    switch(table) {
+
+        case 'users':
+
+            params = {
+                TableName: table,
+                Item: {
+                    "_id": id,
+                    "email": email,
+                    "password": password
+                }
+            };
+
+            break
+
+        case 'notes':
+
+            params = {
+
+                TableName: table,
+                Key:{
+                    "note_id": criteria._id
+                }
+
+            };
+
+    }
+
+    console.log("params = " , params);
+
+    var results = [];
+
+    return new Promise((resolve, reject) => {
+
+        docClient.put(params).promise()
+
+            .then((data) => {
+
+                results = data.Items
+
+                resolve (results);
+
+            })
+            .catch( err => {
+
+                console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
+                reject (err);
+
+            });
+    });
 
 };
 
