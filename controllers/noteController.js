@@ -9,6 +9,10 @@ const { getAllNotesForUser, findNoteById, findAnotherNoteWithSameName } = requir
 // notes home GET - display menu with all notes
 exports.index = (req, res, next) => {
 
+    console.log(`inside notes home GET`)
+    console.log(`req.user.id = ${req.user.id}`)
+
+
     getAllNotesForUser(req.user.id)
 
         .then(notes => {

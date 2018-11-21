@@ -94,6 +94,10 @@ passport.deserializeUser((id, done) => {
 
             // if user is found, return "done" with the user
 
+            console.log("user[0] =", user[0])
+
+            user[0].id = user[0]._id
+
             return done(null, user[0]);
 
         })
@@ -235,6 +239,8 @@ exports.signup_post = [
 
                     }
 
+                    console.log("user = ", user)
+
                     create(model, user)
 
                         .then( created_user => {
@@ -345,6 +351,9 @@ exports.login_post = [
                 }
 
                 // authentication was successful, so log user in
+
+                console.log(`inside login_post, auth was successful from Passport`)
+                console.log(`user = ${user}`)
 
                 req.login(user, (err) => {
 

@@ -1,4 +1,5 @@
 const uuid = require('uuid/v4');
+const random = require('randomstring')
 
 
 
@@ -33,6 +34,15 @@ exports.read = (type, criteria, selection = null, options = null) => {
     const table = (type === 'user') ? "users" : "notes";
     const id = criteria._id;
     const email = criteria.email;
+    const user_id = criteria.user_id;
+
+// determine all criteria user for reading notes (e.g., user_id, _id, etc.)
+// update case 'notes' to match each scenario
+    // read for notes is only called by getAllNotesForUser(req.user.id)
+    // DONE : syntax for params
+    // to do: return the notes in order (try this using sort key
+    // DONE : create GSI on notes table for user_id, with sort order on note_name
+    // DONE : populate the notes table with some notes, or get Create Note working
 
     let params;
 
@@ -80,8 +90,13 @@ exports.read = (type, criteria, selection = null, options = null) => {
             params = {
 
                 TableName: table,
-                Key:{
-                    "note_id": criteria._id
+                IndexName: 'user_id-name-index',
+                KeyConditionExpression: "#user_id = :user_id",
+                ExpressionAttributeNames:{
+                    "#user_id": "user_id"
+                },
+                ExpressionAttributeValues: {
+                    ":user_id": user_id
                 }
 
             };
