@@ -33,6 +33,6 @@ block content
     hr
 
     p
-        a(href=selectedNote.url + '/delete') Delete this note
+        a(href='/notes/' + selectedNote._id + '/delete') Delete this note
     p
-        a(href=selectedNote.url + '/update') Update this note
+        a(href='/notes/' + selectedNote._id + '/update') Update this note

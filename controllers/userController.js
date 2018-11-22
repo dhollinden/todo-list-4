@@ -94,7 +94,8 @@ passport.deserializeUser((id, done) => {
 
             // if user is found, return "done" with the user
 
-            console.log("user[0] =", user[0])
+            console.log(`inside passport.deserializeUser, read success`)
+            console.log("  user[0] =", user[0])
 
             user[0].id = user[0]._id
 
@@ -173,12 +174,14 @@ exports.signup_post = [
 
         // create a user object with sanitized data
 
+/*
         const user = new User(
             {
                 email: req.body.email,
                 password: req.body.password
             }
         );
+*/
 
         if (!errors.isEmpty()) {
 
@@ -187,7 +190,7 @@ exports.signup_post = [
             const pageContent = {
 
                 title: 'Sign Up Error',
-                email: user.email,
+                email: req.body.email,
                 errors: errors.array(),
                 authenticated: req.isAuthenticated()
 
@@ -202,7 +205,7 @@ exports.signup_post = [
             // check whether email address has already been used
 
             const model = 'user'
-            const criteria = { 'email': user.email }
+            const criteria = { 'email': req.body.email }
 
             read(model, criteria)
 
@@ -227,21 +230,21 @@ exports.signup_post = [
                     // email is unique, hash the password
 
                     const saltRounds = 10;
-                    user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(saltRounds));
+                    passwordHashed = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(saltRounds));
 
                     // save user
 
                     const model = 'user'
                     const criteria = {
 
-                        email: user.email,
-                        password: user.password
+                        email: req.body.email,
+                        password: passwordHashed
 
                     }
 
-                    console.log("user = ", user)
+                    console.log("criteria = ", criteria)
 
-                    create(model, user)
+                    create(model, criteria)
 
                         .then( created_user => {
 
@@ -545,23 +548,25 @@ exports.account_email_post = [
                         }
 
                         res.render('user_email_form', pageContent);
+
+                    } else {
+
+                        // update email address
+
+                        const model = 'user'
+                        const criteria = { '_id': req.user.id }
+                        const updates = { 'email': req.body.new_email }
+
+                        update(model, criteria, updates)
+
+                            .then( updated_user => {
+
+                                return res.redirect('/account?message=email_update_success')
+
+                            })
                     }
 
-                    // update email address
-
-                    const model = 'user'
-                    const criteria = { '_id': req.user.id }
-                    const updates = { 'email': req.body.new_email }
-
-                    update(model, criteria, updates)
-
-                        .then( updated_user => {
-
-                            return res.redirect('/account?message=email_update_success')
-
-                        })
-
-                    })
+                })
 
                 .catch( err => {
 

@@ -3,7 +3,7 @@ const { read } = require('../modules/' + process.env.DB);
 exports.getAllNotesForUser = user_id => {
 
     console.log(`inside getAllNotesForUser`)
-    console.log(`user_id = ${user_id}`)
+    console.log(`  user_id = ${user_id}`)
 
     // read all notes for this user_id and return as a promise
     const model = 'note';

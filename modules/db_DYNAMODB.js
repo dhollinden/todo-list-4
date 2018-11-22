@@ -1,5 +1,5 @@
 const uuid = require('uuid/v4');
-const random = require('randomstring')
+const randomstring = require('randomstring')
 
 
 
@@ -104,7 +104,7 @@ exports.read = (type, criteria, selection = null, options = null) => {
     }
 
 
-    console.log("params = " , params);
+    console.log("  params = " , params);
 
     var results = [];
 
@@ -146,7 +146,7 @@ exports.create = (type, criteria, options = null) => {
 
     let params;
 
-    switch(table) {
+    switch (table) {
 
         case 'users':
 
@@ -163,11 +163,16 @@ exports.create = (type, criteria, options = null) => {
 
         case 'notes':
 
+            const note_id = randomstring.generate({
+                length: 24,
+                charset: 'hex'
+            });
+
             params = {
 
                 TableName: table,
                 Key:{
-                    "note_id": criteria._id
+                    "note_id": note_id
                 }
 
             };
@@ -205,21 +210,135 @@ exports.create = (type, criteria, options = null) => {
 //   updates: object ({name: 'some name', body: 'some body'})
 //   return: promise for raw update
 
-exports.update = (model, criteria, updates, options = null) => {
+exports.update = (type, criteria, updates, options = null) => {
 
-    let from = (model === 'note') ? Note : User;
+    const table = (type === 'user') ? "users" : "notes";
+    const _id = criteria._id;
+    const email_new = updates.email;
+    const password_new = updates.password;
+    const note_name = updates.name;
+    const note_body = updates.body;
+    let params;
 
-    return "from db_DYNAMODB update callback"
+    switch (table) {
+
+        case 'users':
+
+            const attributeToUpdate = email_new ? 'email' : 'password';
+            const updateValue = email_new ? email_new : password_new;
+
+            params = {
+                TableName: table,
+                Key:{
+                    "_id": _id
+                },
+                UpdateExpression: "set #attributeToUpdate = :updateValue",
+                ExpressionAttributeNames:{
+                    "#attributeToUpdate": attributeToUpdate
+                },
+                ExpressionAttributeValues:{
+                    ":updateValue": updateValue
+                },
+                ReturnValues:"UPDATED_NEW"
+            };
+
+        break
+
+        case 'notes':
+
+            params = {
+                TableName: table,
+                Key:{
+                    "_id": _id
+                },
+                UpdateExpression: "set #name = :name, #body = :body",
+                ExpressionAttributeNames:{
+                    "#name": "name",
+                    "#body": "body"
+                },
+                ExpressionAttributeValues:{
+                    ":name": note_name,
+                    ":body": note_body
+                },
+                ReturnValues:"UPDATED_NEW"
+            };
+    }
+
+
+    console.log("inside db_DYNAMODB update: params = " , params);
+
+    var results = [];
+
+    return new Promise((resolve, reject) => {
+
+        docClient.update(params).promise()
+
+            .then((data) => {
+
+                console.log("  Update succeeded:", data);
+
+                results = data.Items
+
+//                console.log("results[0] = ", results[0])
+                resolve (results);
+
+            })
+            .catch( err => {
+
+                console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
+                reject (err);
+
+            });
+    });
 
 };
 
 // delete
 //   return: promise
 
-exports.remove = (model, criteria, options = null) => {
+exports.remove = (type, criteria, options = null) => {
 
-    let from = (model === 'note') ? Note : User;
+    const table = (type === 'user') ? "users" : "notes";
+    const note_id = criteria._id;
+    const user_id = criteria.user_id;
 
-    return "from db_DYNAMODB delete callback"
+    if (note_id) {
+        const params = {
+            RequestItems: {
+                'notes': [
+                    {
+                        DeleteRequest: {
+                            Key: { _id: note_id }
+                        }
+                    }
+                ]
+            }
+        };
+    }
 
+    console.log("inside db_DYNAMODB remove: params = " , params);
+
+    var results = [];
+
+    return new Promise((resolve, reject) => {
+
+        docClient.query(params).promise()
+
+            .then((data) => {
+
+//                console.log("GetItem succeeded:", data);
+
+                results = data.Items
+
+//                console.log("results[0] = ", results[0])
+                resolve (results);
+
+            })
+            .catch( err => {
+
+                console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
+                reject (err);
+
+            });
+    });
 };

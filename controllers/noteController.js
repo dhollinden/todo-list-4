@@ -104,7 +104,7 @@ exports.note_create_get = (req, res, next) => {
 // note create POST
 exports.note_create_post = [
 
-    // validate note name field (note body may be empty)
+// validate note name field (note body may be empty)
 
     body('name', 'Please enter a name for the note.')
         .isLength({min: 1})
@@ -118,6 +118,9 @@ exports.note_create_post = [
     // process request
 
     (req, res, next) => {
+
+        console.log(`inside note create POST`)
+        console.log(`req.user.id = ${req.user.id}`)
 
         // extract any validation errors
 
@@ -167,7 +170,7 @@ exports.note_create_post = [
                         const pageContent = {
 
                             title: 'Create Note: Error',
-                            selectedNote: note,
+                            selectedNote: sanitizedNote,
                             message: 'name_exists',
                             authenticated: req.isAuthenticated()
 
@@ -179,6 +182,9 @@ exports.note_create_post = [
                     // save note, redirect to note detail page
 
                     const model = 'note';
+
+                    console.log("inside note create POST, inside getAllNotesForUser.then")
+                    console.log("sanitizedNote = ", sanitizedNote)
 
                     create(model, sanitizedNote)
 

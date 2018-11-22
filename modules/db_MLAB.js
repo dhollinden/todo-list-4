@@ -17,6 +17,10 @@ exports.read = (model, criteria, selection = null, options = null) => {
 
     let from = (model === 'note') ? Note : User;
 
+    console.log(`inside db_MLAB read`)
+    console.log(`from = ${model}`)
+    console.log("criteria = ", criteria)
+
     return from.find(criteria)
         .select(selection)
         .sort(options)
@@ -30,9 +34,22 @@ exports.read = (model, criteria, selection = null, options = null) => {
 
 exports.create = (model, criteria, options = null) => {
 
+    console.log("inside db_MLAB create")
+    console.log("criteria = ", criteria)
+
     let from = (model === 'note') ? Note : User;
 
-    return from.create(criteria)
+    if (model === 'user') {
+
+        const user = new User(criteria);
+
+        return from.create(user)
+
+    } else {
+
+        return from.create(criteria)
+
+    }
 
 };
 

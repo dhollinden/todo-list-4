@@ -29,7 +29,7 @@ block content
         for note in notes
             ul
                 li
-                    a(href=note.url) #{note.name}
+                    a(href='/notes/' + note._id ) #{note.name}
     else
         ul
             li You have not created any notes
