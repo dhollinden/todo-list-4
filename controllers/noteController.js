@@ -128,15 +128,12 @@ exports.note_create_post = [
 
         // create a note object with sanitized data
 
-        const sanitizedNote = new Note(
+        const sanitizedNote = {
 
-            {
                 name: req.body.name,
                 body: req.body.body,
                 user_id: req.user.id
-            }
-
-        );
+        };
 
         if (!errors.isEmpty()) {
 
@@ -144,8 +141,8 @@ exports.note_create_post = [
 
             const pageContent = {
 
-                title: 'Create Note: Error',
-                note: sanitizedNote,
+                title: 'Create Note:',
+                selectedNote: sanitizedNote,
                 errors: errors.array(),
                 authenticated: req.isAuthenticated()
 
@@ -169,7 +166,7 @@ exports.note_create_post = [
 
                         const pageContent = {
 
-                            title: 'Create Note: Error',
+                            title: 'Create Note:',
                             selectedNote: sanitizedNote,
                             message: 'name_exists',
                             authenticated: req.isAuthenticated()
@@ -188,9 +185,13 @@ exports.note_create_post = [
 
                     create(model, sanitizedNote)
 
-                        .then(createdNote => {
+                        .then( createdNote => {
 
-                            res.redirect(createdNote.url);
+                            console.log("inside note create POST, inside getAllNotesForUser.then, inside create.then")
+                            console.log("createdNote = ", createdNote)
+
+
+                            res.redirect(`/notes/${createdNote._id}`);
 
                         })
 

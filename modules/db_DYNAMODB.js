@@ -144,6 +144,17 @@ exports.create = (type, criteria, options = null) => {
     const password = criteria.password;
     const id = String(uuid());
 
+    const note_name = criteria.name;
+    const note_body = criteria.body;
+    const user_id = criteria.user_id;
+    const note_id = randomstring.generate({
+        length: 24,
+        charset: 'hex'
+    });
+
+
+
+
     let params;
 
     switch (table) {
@@ -151,28 +162,28 @@ exports.create = (type, criteria, options = null) => {
         case 'users':
 
             params = {
+
                 TableName: table,
                 Item: {
                     "_id": id,
                     "email": email,
                     "password": password
                 }
+
             };
 
             break
 
         case 'notes':
 
-            const note_id = randomstring.generate({
-                length: 24,
-                charset: 'hex'
-            });
-
             params = {
 
                 TableName: table,
-                Key:{
-                    "note_id": note_id
+                Item: {
+                    "name": note_name,
+                    "body": note_body,
+                    "user_id": user_id,
+                    "_id": note_id
                 }
 
             };
@@ -191,7 +202,13 @@ exports.create = (type, criteria, options = null) => {
 
                 results = data.Items
 
-                resolve (results);
+                console.log("inside db_DYNAMODB create, inside docClient.put.then")
+                console.log("results = ", results)
+                console.log("data = ", data)
+
+                // noteController is expecting an object
+
+                resolve ( { _id: note_id} );
 
             })
             .catch( err => {
@@ -214,6 +231,7 @@ exports.update = (type, criteria, updates, options = null) => {
 
     const table = (type === 'user') ? "users" : "notes";
     const _id = criteria._id;
+    const user_id = criteria.user_id;
     const email_new = updates.email;
     const password_new = updates.password;
     const note_name = updates.name;
@@ -249,7 +267,8 @@ exports.update = (type, criteria, updates, options = null) => {
             params = {
                 TableName: table,
                 Key:{
-                    "_id": _id
+                    "_id": _id,
+                    "user_id": user_id
                 },
                 UpdateExpression: "set #name = :name, #body = :body",
                 ExpressionAttributeNames:{
@@ -262,6 +281,7 @@ exports.update = (type, criteria, updates, options = null) => {
                 },
                 ReturnValues:"UPDATED_NEW"
             };
+
     }
 
 
@@ -279,7 +299,6 @@ exports.update = (type, criteria, updates, options = null) => {
 
                 results = data.Items
 
-//                console.log("results[0] = ", results[0])
                 resolve (results);
 
             })
@@ -302,18 +321,31 @@ exports.remove = (type, criteria, options = null) => {
     const note_id = criteria._id;
     const user_id = criteria.user_id;
 
-    if (note_id) {
-        const params = {
-            RequestItems: {
-                'notes': [
-                    {
-                        DeleteRequest: {
-                            Key: { _id: note_id }
+    let params;
+
+    switch(table) {
+
+        case 'notes':
+
+            params = {
+                RequestItems: {
+                    'notes': [
+                        {
+                            DeleteRequest: {
+                                Key: {
+                                    _id: note_id,
+                                    user_id: user_id
+                                }
+                            }
                         }
-                    }
-                ]
-            }
-        };
+                    ]
+                }
+            };
+
+            break
+
+        case 'users' : {}
+
     }
 
     console.log("inside db_DYNAMODB remove: params = " , params);
@@ -322,15 +354,14 @@ exports.remove = (type, criteria, options = null) => {
 
     return new Promise((resolve, reject) => {
 
-        docClient.query(params).promise()
+        docClient.batchWrite(params).promise()
 
             .then((data) => {
 
-//                console.log("GetItem succeeded:", data);
+                console.log("Delete succeeded:", data);
 
                 results = data.Items
 
-//                console.log("results[0] = ", results[0])
                 resolve (results);
 
             })

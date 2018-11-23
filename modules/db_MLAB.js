@@ -37,17 +37,17 @@ exports.create = (model, criteria, options = null) => {
     console.log("inside db_MLAB create")
     console.log("criteria = ", criteria)
 
-    let from = (model === 'note') ? Note : User;
-
     if (model === 'user') {
 
         const user = new User(criteria);
 
-        return from.create(user)
+        return User.create(user)
 
     } else {
 
-        return from.create(criteria)
+        const note = new Note(criteria);
+
+        return Note.create(criteria)
 
     }
 
