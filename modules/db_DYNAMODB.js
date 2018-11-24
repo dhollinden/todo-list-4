@@ -2,7 +2,6 @@ const uuid = require('uuid/v4');
 const randomstring = require('randomstring')
 
 
-
 // ALL
 // model: data model (Note or User)
 // criteria: object with key/value pairs defining search criteria
@@ -106,7 +105,7 @@ exports.read = (type, criteria, selection = null, options = null) => {
 
     console.log("  params = " , params);
 
-    var results = [];
+    let results = [];
 
     return new Promise((resolve, reject) => {
 
@@ -192,7 +191,7 @@ exports.create = (type, criteria, options = null) => {
 
     console.log("params = " , params);
 
-    var results = [];
+    let results = [];
 
     return new Promise((resolve, reject) => {
 
@@ -287,7 +286,7 @@ exports.update = (type, criteria, updates, options = null) => {
 
     console.log("inside db_DYNAMODB update: params = " , params);
 
-    var results = [];
+    let results = [];
 
     return new Promise((resolve, reject) => {
 
@@ -317,59 +316,137 @@ exports.update = (type, criteria, updates, options = null) => {
 
 exports.remove = (type, criteria, options = null) => {
 
+    console.log("inside db_DYNAMODB remove")
+
     const table = (type === 'user') ? "users" : "notes";
     const note_id = criteria._id;
     const user_id = criteria.user_id;
 
     let params;
+    let results = [];
 
-    switch(table) {
+    if (table === 'users' || note_id) { // delete a user or delete an individual note by note_id
 
-        case 'notes':
+        console.log("inside db_DYNAMODB remove: deleting one item from ", table)
 
-            params = {
-                RequestItems: {
-                    'notes': [
-                        {
-                            DeleteRequest: {
-                                Key: {
-                                    _id: note_id,
-                                    user_id: user_id
-                                }
-                            }
-                        }
-                    ]
-                }
-            };
+        params = criteria._id ?
+            {TableName: table, Key: {_id: note_id, user_id: user_id}} :
+            {TableName: table, Key: {_id: user_id}};
 
-            break
+        console.log("  params = ", params);
 
-        case 'users' : {}
+        return new Promise((resolve, reject) => {
+
+            docClient.delete(params).promise()
+
+                .then((data) => {
+
+                    console.log("Delete succeeded:", data);
+
+                    results = data.Items
+
+                    resolve (results);
+
+                })
+                .catch( err => {
+
+                    console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
+                    reject (err);
+
+                });
+
+        });
+
+
+    } else {
+
+        console.log("inside db_DYNAMODB remove: deleting all notes")
+
+        params = {
+
+            TableName: 'notes',
+            IndexName: 'user_id-name-index',
+            KeyConditionExpression: "#user_id = :user_id",
+            ExpressionAttributeNames:{
+                "#user_id": "user_id"
+            },
+            ExpressionAttributeValues: {
+                ":user_id": user_id
+            }
+
+        };
+
+        console.log("  params for reading all notes = ", params)
+
+        return new Promise((resolve, reject) => {
+
+            console.log("  reading all notes for user")
+
+            docClient.query(params).promise()
+
+                .then((notes) => {
+
+                    console.log("inside docClient.query.then, notes.Items = ", notes.Items)
+
+                    function deleteAllNotes(notes) {
+
+                        console.log("inside function deleteAllNotes")
+
+                        let deletions = notes.map(note => {
+
+                            params = {TableName: table, Key: {_id: note._id, user_id: user_id}}
+
+                            return new Promise((resolve, reject) => {
+
+                                console.log("  deleting individual item, params = ", params)
+
+                                docClient.delete(params).promise()
+
+                                    .then((data) => {
+
+                                        console.log("inside docClient.delete.then, data =", data);
+
+                                        resolve (data);
+
+                                    })
+                                    .catch( err => {
+
+                                        console.log("error in docClient.delete.catch = ", err)
+
+                                        reject (err);
+
+                                    });
+
+                            });
+
+                        });
+
+                        return Promise.all(deletions)
+
+                    }
+
+                    deleteAllNotes(notes.Items)
+
+                        .then( result => {
+
+                            console.log("inside deleteAllNotes.then, result = ", result)
+
+                            resolve(result)
+
+                        })
+
+                })
+                .catch( err => {
+
+                    console.log("error in docClient.query.catch = ", err)
+
+                    reject (err);
+
+                });
+
+        });
 
     }
 
-    console.log("inside db_DYNAMODB remove: params = " , params);
 
-    var results = [];
-
-    return new Promise((resolve, reject) => {
-
-        docClient.batchWrite(params).promise()
-
-            .then((data) => {
-
-                console.log("Delete succeeded:", data);
-
-                results = data.Items
-
-                resolve (results);
-
-            })
-            .catch( err => {
-
-                console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
-                reject (err);
-
-            });
-    });
 };

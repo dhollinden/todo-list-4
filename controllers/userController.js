@@ -95,7 +95,7 @@ passport.deserializeUser((id, done) => {
             // if user is found, return "done" with the user
 
             console.log(`inside passport.deserializeUser, read success`)
-            console.log("  user[0] =", user[0])
+            console.log("user[0] =", user[0])
 
             user[0].id = user[0]._id
 
