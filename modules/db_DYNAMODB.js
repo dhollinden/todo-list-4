@@ -2,13 +2,7 @@ const uuid = require('uuid/v4');
 const randomstring = require('randomstring')
 
 
-// ALL
-// model: data model (Note or User)
-// criteria: object with key/value pairs defining search criteria
-// options: space delimited string ('name -body') or object ({name: 1, body: -1} or {name: 'asc', body: 'desc'})
-
-
-// create database connection
+// database connection
 const AWS = require("aws-sdk");
 
 AWS.config.update({
@@ -20,90 +14,90 @@ AWS.config.setPromisesDependency(null);
 
 const docClient = new AWS.DynamoDB.DocumentClient();
 
-// --------
 
 
-// read
-//   selection: space delimited string ('name body') or object ({name: 1, body: 1})
-//   return: promise for an array of documents
+/*
+--- notes table ---
+Primary partition key: _id (String)
+Primary sort key: user_id (String)
+GSI: user_id-name-index
+Primary partition key: user_id (String)
+Primary sort key: name (String)
+
+Note: notes are always read by getAllNotesForUser(req.user.id) using the user_id-name-index GSI
+
+
+--- users table ---
+Primary partition key: _id (String)
+Primary sort key: -
+GSI: email-index
+Primary partition key: email (String)
+Primary sort key: -
+
+Note: the email-index GSI is used to check for duplicate email addresses during signup process
+
+
+--- parameters ---
+type: user | note (string, for specifying table as 'users' or 'notes')
+criteria: _id | user_id | email | password | name | body (object, for defining search criteria)
+selection: not used here
+options: not used here
+*/
+
+
+
+// read - returns promise for an array of items
 exports.read = (type, criteria, selection = null, options = null) => {
 
-    console.log(`inside db_DYNAMODB read`)
-
     const table = (type === 'user') ? "users" : "notes";
-    const id = criteria._id;
+    const _id = criteria._id;
     const email = criteria.email;
     const user_id = criteria.user_id;
 
-// determine all criteria user for reading notes (e.g., user_id, _id, etc.)
-// update case 'notes' to match each scenario
-    // read for notes is only called by getAllNotesForUser(req.user.id)
-    // DONE : syntax for params
-    // to do: return the notes in order (try this using sort key
-    // DONE : create GSI on notes table for user_id, with sort order on note_name
-    // DONE : populate the notes table with some notes, or get Create Note working
-
     let params;
 
-    switch(table) {
+    if (table === 'notes') {
 
-        case 'users':
+        params = {
 
-            if (email) {
-
-                params = {
-
-                    TableName : table,
-                    IndexName: 'email-index',
-                    KeyConditionExpression: "#email = :email",
-                    ExpressionAttributeNames:{
-                        "#email": "email"
-                    },
-                    ExpressionAttributeValues: {
-                        ":email": email
-                    }
-
-                };
-
-            } else {
-
-                params = {
-
-                    TableName : table,
-                    KeyConditionExpression: "#id = :id",
-                    ExpressionAttributeNames:{
-                        "#id": "_id"
-                    },
-                    ExpressionAttributeValues: {
-                        ":id": id
-                    }
-
-                };
-
+            TableName: table,
+            IndexName: 'user_id-name-index',
+            KeyConditionExpression: "user_id = :user_id",
+            ExpressionAttributeValues: {
+                ":user_id": user_id
             }
 
-            break
+        };
 
-        case 'notes':
+    } else if (table === 'users' && !email) {
 
-            params = {
+        params = {
 
-                TableName: table,
-                IndexName: 'user_id-name-index',
-                KeyConditionExpression: "#user_id = :user_id",
-                ExpressionAttributeNames:{
-                    "#user_id": "user_id"
-                },
-                ExpressionAttributeValues: {
-                    ":user_id": user_id
-                }
+            TableName : table,
+            KeyConditionExpression: "#id = :id",
+            ExpressionAttributeNames:{
+                "#id": "_id"
+            },
+            ExpressionAttributeValues: {
+                ":id": _id
+            }
 
-            };
+        };
+
+    } else { // search for user by email
+
+        params = {
+
+            TableName : table,
+            IndexName: 'email-index',
+            KeyConditionExpression: "email = :email",
+            ExpressionAttributeValues: {
+                ":email": email
+            }
+
+        };
 
     }
-
-
-    console.log("  params = " , params);
 
     let results = [];
 
@@ -113,17 +107,17 @@ exports.read = (type, criteria, selection = null, options = null) => {
 
             .then((data) => {
 
-//                console.log("GetItem succeeded:", data);
+                console.log("DYNAMODB read succeeded:", data);
 
                 results = data.Items
 
-//                console.log("results[0] = ", results[0])
                 resolve (results);
 
             })
             .catch( err => {
 
-                console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
+                console.error("DYNAMODB read failed. Error:", err);
+
                 reject (err);
 
             });
