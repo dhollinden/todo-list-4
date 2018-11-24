@@ -99,19 +99,15 @@ exports.read = (type, criteria, selection = null, options = null) => {
 
     }
 
-    let results = [];
-
     return new Promise((resolve, reject) => {
 
         docClient.query(params).promise()
 
             .then((data) => {
 
-                console.log("DYNAMODB read succeeded:", data);
+                console.log("DYNAMODB read succeeded:", data.Items);
 
-                results = data.Items
-
-                resolve (results);
+                resolve (data.Items);
 
             })
             .catch( err => {
@@ -126,66 +122,52 @@ exports.read = (type, criteria, selection = null, options = null) => {
 };
 
 
-// create
-//   return: promise for document
+// create - returns promise for object containing _id of newly created item
 exports.create = (type, criteria, options = null) => {
 
-    console.log(`inside db_DYNAMODB create`)
-
     const table = (type === 'user') ? "users" : "notes";
+
+    // for creating users
     const email = criteria.email;
     const password = criteria.password;
-    const id = String(uuid());
+    const _id = String(uuid());
 
+    // for creating notes
     const note_name = criteria.name;
     const note_body = criteria.body;
     const user_id = criteria.user_id;
-    const note_id = randomstring.generate({
-        length: 24,
-        charset: 'hex'
-    });
-
-
-
+    const note_id = randomstring.generate({ length: 24, charset: 'hex' });
 
     let params;
 
-    switch (table) {
+    if (table === 'users') {
 
-        case 'users':
+        params = {
 
-            params = {
+            TableName: table,
+            Item: {
+                "_id": _id,
+                "email": email,
+                "password": password
+            }
 
-                TableName: table,
-                Item: {
-                    "_id": id,
-                    "email": email,
-                    "password": password
-                }
+        };
 
-            };
+    } else {
 
-            break
+        params = {
 
-        case 'notes':
+            TableName: table,
+            Item: {
+                "name": note_name,
+                "body": note_body,
+                "user_id": user_id,
+                "_id": note_id
+            }
 
-            params = {
-
-                TableName: table,
-                Item: {
-                    "name": note_name,
-                    "body": note_body,
-                    "user_id": user_id,
-                    "_id": note_id
-                }
-
-            };
+        };
 
     }
-
-    console.log("params = " , params);
-
-    let results = [];
 
     return new Promise((resolve, reject) => {
 
@@ -193,20 +175,17 @@ exports.create = (type, criteria, options = null) => {
 
             .then((data) => {
 
-                results = data.Items
+                console.log("DYNAMODB create succeeded:", data);
 
-                console.log("inside db_DYNAMODB create, inside docClient.put.then")
-                console.log("results = ", results)
-                console.log("data = ", data)
-
-                // noteController is expecting an object
+                // provide noteController with _id of new note
 
                 resolve ( { _id: note_id} );
 
             })
             .catch( err => {
 
-                console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
+                console.error("DYNAMODB create failed. Error:", err);
+
                 reject (err);
 
             });
