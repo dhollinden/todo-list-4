@@ -39,9 +39,10 @@ Note: the email-index GSI is used to check for duplicate email addresses during 
 
 --- parameters ---
 type: user | note (string, for specifying table as 'users' or 'notes')
-criteria: _id | user_id | email | password | name | body (object, for defining search criteria)
+criteria: _id, user_id, email, password, name, body (object, for defining query keys, put attributes, etc.)
 selection: not used here
 options: not used here
+updates: email, password, name, body (object, for defining attributes and values to be updated)
 */
 
 
@@ -122,6 +123,7 @@ exports.read = (type, criteria, selection = null, options = null) => {
 };
 
 
+
 // create - returns promise for object containing _id of newly created item
 exports.create = (type, criteria, options = null) => {
 
@@ -189,77 +191,70 @@ exports.create = (type, criteria, options = null) => {
                 reject (err);
 
             });
+
     });
 
 };
 
 
-// update
-// Updates one document in the database without returning it.
-//   updates: object ({name: 'some name', body: 'some body'})
-//   return: promise for raw update
-
+// update - returns promise for ...
 exports.update = (type, criteria, updates, options = null) => {
 
     const table = (type === 'user') ? "users" : "notes";
     const _id = criteria._id;
     const user_id = criteria.user_id;
+
+    // updates for user
     const email_new = updates.email;
     const password_new = updates.password;
+
+    // updates for note
     const note_name = updates.name;
     const note_body = updates.body;
+
     let params;
 
-    switch (table) {
+    if (table === 'users') {
 
-        case 'users':
+        const attributeToUpdate = email_new ? 'email' : 'password';
+        const updateValue = email_new ? email_new : password_new;
 
-            const attributeToUpdate = email_new ? 'email' : 'password';
-            const updateValue = email_new ? email_new : password_new;
+        params = {
+            TableName: table,
+            Key:{
+                "_id": _id
+            },
+            UpdateExpression: "set #attributeToUpdate = :updateValue",
+            ExpressionAttributeNames:{
+                "#attributeToUpdate": attributeToUpdate
+            },
+            ExpressionAttributeValues:{
+                ":updateValue": updateValue
+            },
+            ReturnValues:"UPDATED_NEW"
+        };
 
-            params = {
-                TableName: table,
-                Key:{
-                    "_id": _id
-                },
-                UpdateExpression: "set #attributeToUpdate = :updateValue",
-                ExpressionAttributeNames:{
-                    "#attributeToUpdate": attributeToUpdate
-                },
-                ExpressionAttributeValues:{
-                    ":updateValue": updateValue
-                },
-                ReturnValues:"UPDATED_NEW"
-            };
+    } else {
 
-        break
-
-        case 'notes':
-
-            params = {
-                TableName: table,
-                Key:{
-                    "_id": _id,
-                    "user_id": user_id
-                },
-                UpdateExpression: "set #name = :name, #body = :body",
-                ExpressionAttributeNames:{
-                    "#name": "name",
-                    "#body": "body"
-                },
-                ExpressionAttributeValues:{
-                    ":name": note_name,
-                    ":body": note_body
-                },
-                ReturnValues:"UPDATED_NEW"
-            };
+        params = {
+            TableName: table,
+            Key:{
+                "_id": _id,
+                "user_id": user_id
+            },
+            UpdateExpression: "set #name = :name, #body = :body",
+            ExpressionAttributeNames:{
+                "#name": "name",
+                "#body": "body"
+            },
+            ExpressionAttributeValues:{
+                ":name": note_name,
+                ":body": note_body
+            },
+            ReturnValues:"UPDATED_NEW"
+        };
 
     }
-
-
-    console.log("inside db_DYNAMODB update: params = " , params);
-
-    let results = [];
 
     return new Promise((resolve, reject) => {
 
@@ -267,22 +262,24 @@ exports.update = (type, criteria, updates, options = null) => {
 
             .then((data) => {
 
-                console.log("  Update succeeded:", data);
+                console.log("DYNAMODB update succeeded:", data);
 
-                results = data.Items
-
-                resolve (results);
+                resolve (data.Items);
 
             })
             .catch( err => {
 
-                console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
+                console.error("DYNAMODB update failed. Error:", err);
+
                 reject (err);
 
             });
+
     });
 
 };
+
+
 
 // delete
 //   return: promise
