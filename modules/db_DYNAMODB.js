@@ -197,7 +197,7 @@ exports.create = (type, criteria, options = null) => {
 };
 
 
-// update - returns promise for ...
+// update - returns promise, but only attributes updated are returned not full item
 exports.update = (type, criteria, updates, options = null) => {
 
     const table = (type === 'user') ? "users" : "notes";
@@ -281,29 +281,21 @@ exports.update = (type, criteria, updates, options = null) => {
 
 
 
-// delete
-//   return: promise
+// delete - returns promise, but no data
 
 exports.remove = (type, criteria, options = null) => {
-
-    console.log("inside db_DYNAMODB remove")
 
     const table = (type === 'user') ? "users" : "notes";
     const note_id = criteria._id;
     const user_id = criteria.user_id;
 
     let params;
-    let results = [];
 
     if (table === 'users' || note_id) { // delete a user or delete an individual note by note_id
 
-        console.log("inside db_DYNAMODB remove: deleting one item from ", table)
-
-        params = criteria._id ?
+        params = note_id ?
             {TableName: table, Key: {_id: note_id, user_id: user_id}} :
             {TableName: table, Key: {_id: user_id}};
-
-        console.log("  params = ", params);
 
         return new Promise((resolve, reject) => {
 
@@ -311,16 +303,15 @@ exports.remove = (type, criteria, options = null) => {
 
                 .then((data) => {
 
-                    console.log("Delete succeeded:", data);
+                    console.log("DYNAMODB delete user/note succeeded:", data);
 
-                    results = data.Items
-
-                    resolve (results);
+                    resolve (data.Items);
 
                 })
                 .catch( err => {
 
-                    console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
+                    console.error("DYNAMODB delete user/note failed. Error:", err);
+
                     reject (err);
 
                 });
@@ -330,37 +321,24 @@ exports.remove = (type, criteria, options = null) => {
 
     } else {
 
-        console.log("inside db_DYNAMODB remove: deleting all notes")
-
         params = {
 
             TableName: 'notes',
             IndexName: 'user_id-name-index',
-            KeyConditionExpression: "#user_id = :user_id",
-            ExpressionAttributeNames:{
-                "#user_id": "user_id"
-            },
+            KeyConditionExpression: "user_id = :user_id",
             ExpressionAttributeValues: {
                 ":user_id": user_id
             }
 
         };
 
-        console.log("  params for reading all notes = ", params)
-
         return new Promise((resolve, reject) => {
-
-            console.log("  reading all notes for user")
 
             docClient.query(params).promise()
 
                 .then((notes) => {
 
-                    console.log("inside docClient.query.then, notes.Items = ", notes.Items)
-
                     function deleteAllNotes(notes) {
-
-                        console.log("inside function deleteAllNotes")
 
                         let deletions = notes.map(note => {
 
@@ -368,20 +346,18 @@ exports.remove = (type, criteria, options = null) => {
 
                             return new Promise((resolve, reject) => {
 
-                                console.log("  deleting individual item, params = ", params)
-
                                 docClient.delete(params).promise()
 
                                     .then((data) => {
 
-                                        console.log("inside docClient.delete.then, data =", data);
+                                        console.log("DYNAMODB delete all notes: 1 delete succeeded:", data);
 
                                         resolve (data);
 
                                     })
                                     .catch( err => {
 
-                                        console.log("error in docClient.delete.catch = ", err)
+                                        console.error("DYNAMODB delete all notes: 1 delete failed. Error:", err);
 
                                         reject (err);
 
@@ -397,18 +373,18 @@ exports.remove = (type, criteria, options = null) => {
 
                     deleteAllNotes(notes.Items)
 
-                        .then( result => {
+                        .then( data => {
 
-                            console.log("inside deleteAllNotes.then, result = ", result)
+                            console.log("DYNAMODB delete all notes succeeded:", data);
 
-                            resolve(result)
+                            resolve(data)
 
                         })
 
                 })
                 .catch( err => {
 
-                    console.log("error in docClient.query.catch = ", err)
+                    console.error("DYNAMODB delete all notes failed. Error:", err);
 
                     reject (err);
 
