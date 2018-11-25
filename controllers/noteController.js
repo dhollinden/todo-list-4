@@ -257,7 +257,7 @@ exports.note_update_post = [
 
         // create a note object with sanitized data ** make sure to use _id of the note being updated **
 
-        const sanitizedNote = new Note(
+        const sanitizedNote = (
 
             {
                 name: req.body.name,
@@ -339,9 +339,9 @@ exports.note_update_post = [
 
                         .then(updated_note => {
 
-                            // redirect to sanitizedNote.url because update does not return a document
+                            // redirect to sanitizedNote._id because update does not return a document
 
-                            res.redirect(sanitizedNote.url);
+                            res.redirect(`/notes/${sanitizedNote._id}`);
 
                         });
 

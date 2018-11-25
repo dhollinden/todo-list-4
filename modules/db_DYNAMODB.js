@@ -197,7 +197,7 @@ exports.create = (type, criteria, options = null) => {
 };
 
 
-// update - returns promise, but only attributes updated are returned not full item
+// update - returns promise, but only attributes updated are returned, not the full item
 exports.update = (type, criteria, updates, options = null) => {
 
     const table = (type === 'user') ? "users" : "notes";
