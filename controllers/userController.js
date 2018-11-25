@@ -5,9 +5,8 @@ const bcrypt = require('bcrypt-nodejs');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 
-const User = require('../models/user_model');
 const { read, create, update, remove } = require('../modules/' + process.env.DB);
-const { getAllNotesForUser, findNoteById, findAnotherNoteWithSameName } = require('../modules/note_functions');
+const { getAllNotesForUser } = require('../modules/note_functions');
 
 
 // ------------- Passport -------------
