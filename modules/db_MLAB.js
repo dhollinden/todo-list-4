@@ -17,10 +17,6 @@ exports.read = (model, criteria, selection = null, options = null) => {
 
     let from = (model === 'note') ? Note : User;
 
-    console.log(`inside db_MLAB read`)
-    console.log(`from = ${model}`)
-    console.log("criteria = ", criteria)
-
     return from.find(criteria)
         .select(selection)
         .sort(options)
@@ -33,9 +29,6 @@ exports.read = (model, criteria, selection = null, options = null) => {
 //   return: promise for document
 
 exports.create = (model, criteria, options = null) => {
-
-    console.log("inside db_MLAB create")
-    console.log("criteria = ", criteria)
 
     if (model === 'user') {
 
