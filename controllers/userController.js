@@ -165,17 +165,6 @@ exports.signup_post = [
 
         const errors = validationResult(req);
 
-        // create a user object with sanitized data
-
-/*
-        const user = new User(
-            {
-                email: req.body.email,
-                password: req.body.password
-            }
-        );
-*/
-
         if (!errors.isEmpty()) {
 
             // validation errors, render again with error messages and sanitized email
