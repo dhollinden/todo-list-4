@@ -9,10 +9,6 @@ const { getAllNotesForUser, findNoteById, findAnotherNoteWithSameName } = requir
 // notes home GET - display menu with all notes
 exports.index = (req, res, next) => {
 
-    console.log(`inside notes home GET`)
-    console.log(`req.user.id = ${req.user.id}`)
-
-
     getAllNotesForUser(req.user.id)
 
         .then(notes => {
@@ -119,9 +115,6 @@ exports.note_create_post = [
 
     (req, res, next) => {
 
-        console.log(`inside note create POST`)
-        console.log(`req.user.id = ${req.user.id}`)
-
         // extract any validation errors
 
         const errors = validationResult(req);
@@ -180,16 +173,9 @@ exports.note_create_post = [
 
                     const model = 'note';
 
-                    console.log("inside note create POST, inside getAllNotesForUser.then")
-                    console.log("sanitizedNote = ", sanitizedNote)
-
                     create(model, sanitizedNote)
 
                         .then( createdNote => {
-
-                            console.log("inside note create POST, inside getAllNotesForUser.then, inside create.then")
-                            console.log("createdNote = ", createdNote)
-
 
                             res.redirect(`/notes/${createdNote._id}`);
 

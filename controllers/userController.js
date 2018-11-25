@@ -22,9 +22,6 @@ passport.use(new LocalStrategy(
         const model = 'user'
         const criteria = { 'email': email }
 
-        console.log(`inside passport.use local strategy`)
-
-
         read(model, criteria)
 
             .then( user => {
@@ -62,12 +59,10 @@ passport.serializeUser((user, done) => {
 
     // given a user, call "done" with the user.id
 
-    console.log(`inside passport.serializeUser`)
-    console.log("user = ", user)
-
     // mLabs and DynamoDB both return user._id from the database call
-    // but for some unknown reason the user parameter here needs to be user._id for DynamoDB
-    // and user.id for mLab
+    // but for some reason
+    // done needs to be called with user._id for DynamoDB
+    // and with user.id for mLab
 
     if (user._id) {
         done(null, user._id);  // DynamoDB
@@ -81,8 +76,6 @@ passport.serializeUser((user, done) => {
 // tell passport how to deserialize the user
 passport.deserializeUser((id, done) => {
 
-    console.log(`inside passport.deserializeUser`)
-
     // search for user by id
 
     const model = 'user'
@@ -94,8 +87,8 @@ passport.deserializeUser((id, done) => {
 
             // if user is found, return "done" with the user
 
-            console.log(`inside passport.deserializeUser, read success`)
-            console.log("user[0] =", user[0])
+            // for some reason
+            // done needs to be called with user[0].id for mLab
 
             user[0].id = user[0]._id
 
@@ -107,6 +100,7 @@ passport.deserializeUser((id, done) => {
             // if the search results in an error, return "done" with the error and no user
 
             if (err) return done(err, false);
+
         });
 
 });
@@ -242,8 +236,6 @@ exports.signup_post = [
 
                     }
 
-                    console.log("criteria = ", criteria)
-
                     create(model, criteria)
 
                         .then( created_user => {
@@ -354,9 +346,6 @@ exports.login_post = [
                 }
 
                 // authentication was successful, so log user in
-
-                console.log(`inside login_post, auth was successful from Passport`)
-                console.log(`user = ${user}`)
 
                 req.login(user, (err) => {
 
