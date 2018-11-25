@@ -106,7 +106,7 @@ exports.read = (type, criteria, selection = null, options = null) => {
 
             .then((data) => {
 
-                console.log("DYNAMODB read succeeded:", data.Items);
+                // console.log("DYNAMODB read succeeded:", data.Items);
 
                 resolve (data.Items);
 
@@ -177,7 +177,7 @@ exports.create = (type, criteria, options = null) => {
 
             .then((data) => {
 
-                console.log("DYNAMODB create succeeded:", data);
+                // console.log("DYNAMODB create succeeded:", data);
 
                 // provide noteController with _id of new note
 
@@ -262,7 +262,7 @@ exports.update = (type, criteria, updates, options = null) => {
 
             .then((data) => {
 
-                console.log("DYNAMODB update succeeded:", data);
+                // console.log("DYNAMODB update succeeded:", data);
 
                 resolve (data.Items);
 
@@ -303,7 +303,7 @@ exports.remove = (type, criteria, options = null) => {
 
                 .then((data) => {
 
-                    console.log("DYNAMODB delete user/note succeeded:", data);
+                    // console.log("DYNAMODB delete user/note succeeded:", data);
 
                     resolve (data.Items);
 
@@ -350,7 +350,7 @@ exports.remove = (type, criteria, options = null) => {
 
                                     .then((data) => {
 
-                                        console.log("DYNAMODB delete all notes: 1 delete succeeded:", data);
+                                        // console.log("DYNAMODB delete all notes: 1 delete succeeded:", data);
 
                                         resolve (data);
 
@@ -375,7 +375,7 @@ exports.remove = (type, criteria, options = null) => {
 
                         .then( data => {
 
-                            console.log("DYNAMODB delete all notes succeeded:", data);
+                            // console.log("DYNAMODB delete all notes succeeded:", data);
 
                             resolve(data)
 
