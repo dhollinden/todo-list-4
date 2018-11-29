@@ -14,6 +14,7 @@ const passport = require('passport');
 // routers
 const indexRouter = require('./routes/index');
 const notesRouter = require('./routes/notes');
+const accountRouter = require('./routes/account');
 
 
 // compression, protection, logging
@@ -71,6 +72,13 @@ app.use(passport.session());
 
 // routers
 app.use('/', indexRouter);
+// redirect unauthenticated users from /account to home page
+app.use('/account', (req, res, next) => {
+    if(!req.isAuthenticated())
+        res.redirect('/?message=not_logged_in');
+    else
+        next()
+}, accountRouter);
 // redirect unauthenticated users from /notes to home page
 app.use('/notes', (req, res, next) => {
     if(!req.isAuthenticated())

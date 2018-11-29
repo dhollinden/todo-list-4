@@ -40,9 +40,9 @@ block content
     if message !== 'delete'
 
         p
-            a(href='/account_email') Update email address
+            a(href='/account/email') Update email address
         p
-            a(href='/account_password') Update password
+            a(href='/account/password') Update password
         p
             a(href='/account?message=delete') Delete account
 
@@ -54,7 +54,7 @@ block content
 
 
         p #[strong Are you sure you want to delete your account?]&nbsp;&nbsp;
-            a(href='/account_delete/' + user_id) #[strong Yes]
+            a(href='/account/delete/' + user_id) #[strong Yes]
 
         p
             a(href='/account') Cancel

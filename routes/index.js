@@ -30,28 +30,5 @@ router.post('/login', user_controller.login_post);
 router.get('/logout', user_controller.logout_get);
 
 
-// View account
-// GET
-router.get('/account', user_controller.account);
-
-
-// Delete account
-// GET
-router.get('/account_delete/:id', user_controller.account_delete);
-
-
-// Update email
-//GET
-router.get('/account_email/', user_controller.account_email_get);
-//POST
-router.post('/account_email/', user_controller.account_email_post);
-
-
-// Update password
-// GET
-router.get('/account_password', user_controller.account_password_get);
-// POST
-router.post('/account_password', user_controller.account_password_post);
-
 
 module.exports = router;
