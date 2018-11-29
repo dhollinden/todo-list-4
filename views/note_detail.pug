@@ -5,7 +5,12 @@ block content
     h1= title
 
     br
-    br
+    if message === 'noteCreated'
+        div#message Your note was created.
+    else if message === 'noteUpdated'
+        div#message Your note was updated.
+    else
+        br
     br
 
     p Select a note from the menu

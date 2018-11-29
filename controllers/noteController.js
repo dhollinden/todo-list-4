@@ -61,9 +61,10 @@ exports.note_detail = (req, res, next) => {
 
             const pageContent = {
 
-                title: 'My Notes: ' + requestedNote.name,
+                title: 'My Notes',
                 selectedNote: requestedNote,
                 notes: notes,
+                message: req.query.message,
                 authenticated: req.isAuthenticated()
 
             }
@@ -176,7 +177,7 @@ exports.note_create_post = [
 
                         .then( createdNote => {
 
-                            res.redirect(`/notes/${createdNote._id}`);
+                            res.redirect(`/notes/${createdNote._id}?message=noteCreated`);
 
                         })
 
@@ -215,7 +216,7 @@ exports.note_update_get = (req, res, next) => {
 
             const pageContent = {
 
-                title: 'Update Note: ' + requestedNote.name,
+                title: 'Update Note',
                 selectedNote: requestedNote,
                 authenticated: req.isAuthenticated()
 
@@ -273,8 +274,8 @@ exports.note_update_post = [
 
             const pageContent = {
 
-                title: 'Update Note: Error',
-                note: sanitizedNote,
+                title: 'Update Note',
+                selectedNote: sanitizedNote,
                 errors: errors.array(),
                 authenticated: req.isAuthenticated()
 
@@ -308,7 +309,7 @@ exports.note_update_post = [
 
                         const pageContent = {
 
-                            title: 'Update Note: Error',
+                            title: 'Update Note',
                             selectedNote: sanitizedNote,
                             message: 'name_exists',
                             authenticated: req.isAuthenticated()
@@ -341,7 +342,7 @@ exports.note_update_post = [
 
                             // redirect to sanitizedNote._id because update does not return a document
 
-                            res.redirect(`/notes/${sanitizedNote._id}`);
+                            res.redirect(`/notes/${sanitizedNote._id}?message=noteUpdated`);
 
                         });
 
@@ -380,7 +381,7 @@ exports.note_delete_get = (req, res, next) => {
 
             const pageContent = {
 
-                title: 'Delete Note: ' + requestedNote.name,
+                title: 'Delete Note',
                 selectedNote: requestedNote,
                 authenticated: req.isAuthenticated()
 

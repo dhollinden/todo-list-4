@@ -8,13 +8,13 @@ block content
 
     ul
         if message === 'signup_success'
-            li Your signup was successful. Please log in.
+            li#message Your signup was successful. Please log in.
         else if message === "signup_email_registered"
-            li That email address has already been signed up. Please try another one.
+            li#message That email address has already been signed up. Please try another one.
         else if message === 'login_invalid_creds'
-            li The email address or password is incorrect.
+            li#message The email address or password is incorrect.
         else if message === 'login_success'
-            li Your login was successful.
+            li#message Your login was successful.
         else if errors
             for error in errors
                 li!= error.msg
@@ -23,13 +23,26 @@ block content
 
     form(method='POST' action='')
         div.form-group
-            label(for='name') Email address
-            input#name.form-control(type='text', placeholder='email address', name='email', value=(undefined===email ? '' : email))
+            label(for='email') Email address
+            input#email.form-control(type='text', placeholder='email address', name='email', value=(undefined === email ? '' : email))
         div.form-group
-            label(for'body') Password (8 characters minimum)
-            input#body.form-control(type='password', placeholder='password', name='password', value='')
+            label(for='password') Password (8 characters minimum)
+            input#password.form-control(type='password', placeholder='password', name='password', value=(undefined === password ? '' : password))
         button.btn.btn-primary(type='submit') Submit
+        button.btn(type='button' onclick="toggler(this)") Show
 
     br
     div
         a(href='/') Cancel
+
+
+    script.
+        function toggler(e) {
+            if (e.innerHTML === 'Show') {
+                e.innerHTML = 'Hide'
+                document.getElementById('password').type = "text";
+            } else {
+                e.innerHTML = 'Show'
+                document.getElementById('password').type = "password";
+            }
+        }

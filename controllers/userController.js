@@ -58,17 +58,7 @@ passport.serializeUser((user, done) => {
 
     // given a user, call "done" with the user.id
 
-    // mLabs and DynamoDB both return user._id from the database call
-    // but for some reason
-    // done needs to be called with user._id for DynamoDB
-    // and with user.id for mLab
-
-    if (user._id) {
-        done(null, user._id);  // DynamoDB
-    } else {
-        done(null, user.id);  // mLab
-    }
-
+    done(null, user._id);
 });
 
 
@@ -84,10 +74,20 @@ passport.deserializeUser((id, done) => {
 
         .then( user => {
 
-            // if user is found, return "done" with the user
-
+/*
             // for some reason
-            // done needs to be called with user[0].id for mLab
+            // the 'done' callback needs to be called with user[0].id for DynamoDB
+            console.log("process.env.DB = ", process.env.DB)
+            console.log("deserializeUser: input parameter: id = ", id)
+            console.log(`typeof id = ${typeof id}`)
+            console.log("user[0] = ", user[0])
+            console.log("user[0]._id = ", user[0]._id)
+            console.log(`typeof user[0]._id = ${typeof user[0]._id}`)
+            console.log("user[0].id = ", user[0].id)
+            console.log(`typeof user[0].id = ${typeof user[0].id}`)
+*/
+
+            // if user is found, return "done" with the user
 
             user[0].id = user[0]._id
 
@@ -171,8 +171,9 @@ exports.signup_post = [
 
             const pageContent = {
 
-                title: 'Sign Up Error',
+                title: 'Sign Up',
                 email: req.body.email,
+                password: req.body.password,
                 errors: errors.array(),
                 authenticated: req.isAuthenticated()
 
@@ -199,8 +200,10 @@ exports.signup_post = [
 
                         const pageContent = {
 
-                            title: 'Sign Up Error',
+                            title: 'Sign Up',
                             message: 'signup_email_registered',
+                            email: req.body.email,
+                            password: req.body.password,
                             authenticated: req.isAuthenticated()
 
                         }
@@ -295,7 +298,7 @@ exports.login_post = [
 
             const pageContent = {
 
-                title: 'Log In: Error',
+                title: 'Log In',
                 email: req.body.email,
                 errors: errors.array(),
                 authenticated: req.isAuthenticated()
@@ -322,8 +325,9 @@ exports.login_post = [
 
                     const pageContent = {
 
-                        title: 'Log In Error',
+                        title: 'Log In',
                         email: req.body.email,
+                        password: req.body.password,
                         message: info.message,
                         authenticated: req.isAuthenticated()
 
@@ -487,7 +491,7 @@ exports.account_email_post = [
 
             const pageContent = {
 
-                title: 'My Account: Update Email Address: Error',
+                title: 'My Account: Update Email Address',
                 email: req.user.email,
                 new_email: req.body.new_email,
                 errors: errors.array(),
@@ -516,7 +520,7 @@ exports.account_email_post = [
 
                         const pageContent = {
 
-                            title: 'My Account: Update Email Address: Error',
+                            title: 'My Account: Update Email Address',
                             email: req.user.email,
                             new_email: req.body.new_email,
                             message: 'email_update_registered',
@@ -602,8 +606,10 @@ exports.account_password_post = [
 
             const pageContent = {
 
-                title: 'My Account: Update Password: Error',
+                title: 'My Account: Update Password',
                 errors: errors.array(),
+                cur_password: req.body.cur_password,
+                new_password: req.body.new_password,
                 authenticated: req.isAuthenticated()
 
             }
@@ -622,8 +628,10 @@ exports.account_password_post = [
 
                 const pageContent = {
 
-                    title: 'My Account: Update Password: Error',
+                    title: 'My Account: Update Password',
                     message: 'incorrect_password',
+                    cur_password: req.body.cur_password,
+                    new_password: req.body.new_password,
                     authenticated: req.isAuthenticated()
 
                 }

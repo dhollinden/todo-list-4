@@ -50,7 +50,11 @@ block content
 
         br
 
-        div #[strong Are you sure you want to delete your account?]&nbsp;&nbsp;
+        p
+
+
+        p #[strong Are you sure you want to delete your account?]&nbsp;&nbsp;
             a(href='/account_delete/' + user_id) #[strong Yes]
-            span &nbsp;&nbsp;
-            a(href='/account') #[strong No]
+
+        p
+            a(href='/account') Cancel

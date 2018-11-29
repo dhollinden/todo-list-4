@@ -162,12 +162,15 @@ exports.create = (type, criteria, options = null) => {
             TableName: table,
             Item: {
                 "name": note_name,
-                "body": note_body,
                 "user_id": user_id,
                 "_id": note_id
             }
 
         };
+
+        if (note_body) {
+            params.Item.body = note_body
+        }
 
     }
 
@@ -224,10 +227,7 @@ exports.update = (type, criteria, updates, options = null) => {
             Key:{
                 "_id": _id
             },
-            UpdateExpression: "set #attributeToUpdate = :updateValue",
-            ExpressionAttributeNames:{
-                "#attributeToUpdate": attributeToUpdate
-            },
+            UpdateExpression: "set attributeToUpdate = :updateValue",
             ExpressionAttributeValues:{
                 ":updateValue": updateValue
             },
@@ -242,17 +242,20 @@ exports.update = (type, criteria, updates, options = null) => {
                 "_id": _id,
                 "user_id": user_id
             },
-            UpdateExpression: "set #name = :name, #body = :body",
+            UpdateExpression: "set #name = :name",
             ExpressionAttributeNames:{
-                "#name": "name",
-                "#body": "body"
+                "#name": "name"
             },
             ExpressionAttributeValues:{
-                ":name": note_name,
-                ":body": note_body
+                ":name": note_name
             },
             ReturnValues:"UPDATED_NEW"
         };
+
+        if (note_body) {
+            params.UpdateExpression = "set #name = :name, body = :body";
+            params.ExpressionAttributeValues.body = note_body;
+        }
 
     }
 

@@ -19,13 +19,21 @@ block content
             label(for='name') Name:
             input#name.form-control(type='text', placeholder='name for new note', name='name', value=(undefined===selectedNote ? '' : selectedNote.name))
         div.form-group
-            label(for'body') Notes:
+            label(for='body') Notes:
             input#body.form-control(type='textarea', placeholder='notes', name='body', value=(undefined===selectedNote ? '' : selectedNote.body))
         button.btn.btn-primary(type='submit') Submit
 
     br
-    div
-        a(href='/notes') Cancel
 
     hr
+
+    if (selectedNote)
+
+        p
+            a(href='/notes/' + selectedNote._id) Cancel
+
+    else
+
+        p
+            a(href='/notes/') Cancel
 

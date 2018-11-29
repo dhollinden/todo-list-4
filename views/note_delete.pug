@@ -14,7 +14,13 @@ block content
 
     br
 
+    br
+
+    br
+
     div #[strong Do you really want to delete this Note?]
+
+    br
 
     form(method='POST' action='')
         div.form-group
@@ -22,5 +28,10 @@ block content
 
         button.btn.btn-primary(type='submit') Delete
 
+    br
 
+    hr
+
+    p
+        a(href='/notes/' + selectedNote._id) Cancel
 

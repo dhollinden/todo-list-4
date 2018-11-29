@@ -7,21 +7,21 @@ block content
     br
 
     if message === 'login_success'
-        div You have successfully logged in.
+        div#message You have successfully logged in.
     else if message === "note_deleted"
-        div Your note was deleted.
+        div#message Your note was deleted.
     else if message === 'improperId'
-        div Improper note ID
+        div#message Improper note ID
     else if message === 'invalidId'
-        div There is no note with that ID
+        div#message There is no note with that ID
     else if message === 'not_yours'
-        div You don't have a note with that ID
+        div#message You don't have a note with that ID
     else
         br
 
     br
 
-    if notes != ""
+    if notes.length !== 0
 
         p Select a note from the menu
 
@@ -34,6 +34,10 @@ block content
 
     else
 
-        a(href='/notes/create') Create new note
+        br
+
+        p
+
+            a(href='/notes/create') Create new note
 
     br
