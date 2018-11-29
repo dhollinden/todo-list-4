@@ -100,9 +100,13 @@ exports.note_create_get = (req, res, next) => {
 // note create POST
 exports.note_create_post = [
 
-// validate note name field (note body may be empty)
+// validate note name and body fields
 
     body('name', 'Please enter a name for the note.')
+        .isLength({min: 1})
+        .trim(),
+
+    body('body', 'Please enter some notes.')
         .isLength({min: 1})
         .trim(),
 
@@ -171,9 +175,9 @@ exports.note_create_post = [
 
                     // save note, redirect to note detail page
 
-                    const model = 'note';
+                    const item = 'note';
 
-                    create(model, sanitizedNote)
+                    create(item, sanitizedNote)
 
                         .then( createdNote => {
 
@@ -237,9 +241,13 @@ exports.note_update_get = (req, res, next) => {
 // note update on POST
 exports.note_update_post = [
 
-    // validate note name field (note body may be empty)
+    // validate note name and body fields
 
     body('name', 'Name is required')
+        .isLength({min: 1})
+        .trim(),
+
+    body('body', 'Please enter some notes.')
         .isLength({min: 1})
         .trim(),
 
@@ -322,7 +330,7 @@ exports.note_update_post = [
 
                     // update note with sanitized values, redirect to note detail page
 
-                    const model = 'note';
+                    const item = 'note';
                     const criteria = {
 
                         '_id': requestedNoteId,
@@ -336,7 +344,7 @@ exports.note_update_post = [
 
                     };
 
-                    update(model, criteria, changes)
+                    update(item, criteria, changes)
 
                         .then(updated_note => {
 
@@ -420,7 +428,7 @@ exports.note_delete_post = (req, res, next) => {
 
             // delete requestedNote, redirect to notes page
 
-            const model = 'note';
+            const item = 'note';
             const criteria = {
 
                 '_id': requestedNoteId,
@@ -428,7 +436,7 @@ exports.note_delete_post = (req, res, next) => {
 
             };
 
-            remove(model, criteria)
+            remove(item, criteria)
 
                 .then(deleted_note => {
 

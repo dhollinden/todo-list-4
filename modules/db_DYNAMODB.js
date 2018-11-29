@@ -242,20 +242,17 @@ exports.update = (type, criteria, updates, options = null) => {
                 "_id": _id,
                 "user_id": user_id
             },
-            UpdateExpression: "set #name = :name",
+            UpdateExpression: "set #name = :name, #body = :body",
             ExpressionAttributeNames:{
-                "#name": "name"
+                "#name": "name",
+                "#body": "body"
             },
             ExpressionAttributeValues:{
-                ":name": note_name
+                ":name": note_name,
+                ":body": note_body
             },
             ReturnValues:"UPDATED_NEW"
         };
-
-        if (note_body) {
-            params.UpdateExpression = "set #name = :name, body = :body";
-            params.ExpressionAttributeValues.body = note_body;
-        }
 
     }
 

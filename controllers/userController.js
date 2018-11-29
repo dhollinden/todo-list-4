@@ -18,10 +18,10 @@ passport.use(new LocalStrategy(
 
     (email, password, done) => {
 
-        const model = 'user'
+        const item = 'user'
         const criteria = { 'email': email }
 
-        read(model, criteria)
+        read(item, criteria)
 
             .then( user => {
 
@@ -67,10 +67,10 @@ passport.deserializeUser((id, done) => {
 
     // search for user by id
 
-    const model = 'user'
+    const item = 'user'
     const criteria = { '_id': id }
 
-    read(model, criteria)
+    read(item, criteria)
 
         .then( user => {
 
@@ -187,10 +187,10 @@ exports.signup_post = [
 
             // check whether email address has already been used
 
-            const model = 'user'
+            const item = 'user'
             const criteria = { 'email': req.body.email }
 
-            read(model, criteria)
+            read(item, criteria)
 
                 .then( other_user_with_email => {
 
@@ -219,7 +219,7 @@ exports.signup_post = [
 
                     // save user
 
-                    const model = 'user'
+                    const item = 'user'
                     const criteria = {
 
                         email: req.body.email,
@@ -227,7 +227,7 @@ exports.signup_post = [
 
                     }
 
-                    create(model, criteria)
+                    create(item, criteria)
 
                         .then( created_user => {
 
@@ -412,19 +412,19 @@ exports.account_delete = function (req, res, next) {
 
     // proceed, delete notes first
 
-    const model = 'note';
+    const item = 'note';
     const criteria = { 'user_id': req.user.id };
 
-    remove(model, criteria)
+    remove(item, criteria)
 
         .then( deleted_notes => {
 
             // then delete user
 
-            const model = 'user';
+            const item = 'user';
             const criteria = { '_id': req.user.id };
 
-            remove(model, criteria)
+            remove(item, criteria)
 
                 .then( deleted_user => {
 
@@ -507,10 +507,10 @@ exports.account_email_post = [
 
             // check whether email address has already been used
 
-            const model = 'user'
+            const item = 'user'
             const criteria = { 'email': req.body.new_email }
 
-            read(model, criteria)
+            read(item, criteria)
 
                 .then( existing_user => {
 
@@ -534,11 +534,11 @@ exports.account_email_post = [
 
                         // update email address
 
-                        const model = 'user'
+                        const item = 'user'
                         const criteria = { '_id': req.user.id }
                         const updates = { 'email': req.body.new_email }
 
-                        update(model, criteria, updates)
+                        update(item, criteria, updates)
 
                             .then( updated_user => {
 
@@ -649,11 +649,11 @@ exports.account_password_post = [
 
                 // update the password
 
-                const model = 'user';
+                const item = 'user';
                 const criteria = { '_id': req.user.id };
                 const updates = { 'password': new_password_hashed };
 
-                update(model, criteria, updates)
+                update(item, criteria, updates)
 
                     .then( result => {
 
