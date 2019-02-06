@@ -227,7 +227,10 @@ exports.update = (type, criteria, updates, options = null) => {
             Key:{
                 "_id": _id
             },
-            UpdateExpression: "set attributeToUpdate = :updateValue",
+            UpdateExpression: "set #attributeToUpdate = :updateValue",
+            ExpressionAttributeNames:{
+                "#attributeToUpdate": attributeToUpdate
+            },
             ExpressionAttributeValues:{
                 ":updateValue": updateValue
             },
