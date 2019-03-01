@@ -10,23 +10,25 @@
     "devstart": "nodemon ./bin/www"
   },
   "dependencies": {
-    "async": "^2.6.1",
-    "aws-sdk": "^2.358.0",
+    "async": "^2.6.2",
+    "aws-sdk": "^2.412.0",
     "axios": "^0.18.0",
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.18.3",
     "compression": "^1.7.3",
-    "cookie-parser": "~1.4.3",
+    "cookie-parser": "^1.4.4",
     "cookie-session": "^2.0.0-beta.3",
     "debug": "~2.6.9",
-    "dotenv": "^6.0.0",
-    "express": "~4.16.0",
+    "dotenv": "^6.2.0",
+    "express": "^4.16.4",
     "express-session": "^1.15.6",
-    "express-validator": "^5.2.0",
-    "helmet": "^3.12.1",
+    "express-validator": "^5.3.1",
+    "helmet": "^3.15.1",
     "http-errors": "~1.6.2",
-    "mongoose": "^5.2.3",
+    "lodash": ">=4.17.11",
+    "mongoose": "^5.4.16",
     "morgan": "^1.9.1",
+    "mpath": ">=0.5.1",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "pug": "2.0.0-beta11",
@@ -36,7 +38,7 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "nodemon": "^1.18.1"
+    "nodemon": "^1.18.10"
   },
   "description": "### todo-list-4",
   "main": "app.js",
